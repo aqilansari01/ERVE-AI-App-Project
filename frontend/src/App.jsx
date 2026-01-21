@@ -72,13 +72,16 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+    <div className="min-h-screen bg-[#2C3E50] text-white">
+      {/* Orange top stripe like Eight Roads */}
+      <div className="h-1 bg-[#FF5722]"></div>
+
       <div className="container mx-auto px-4 py-12 max-w-6xl">
-        <header className="mb-12 text-center">
-          <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+        <header className="mb-16 text-center">
+          <h1 className="text-5xl font-bold mb-4 text-white uppercase tracking-wider">
             NAV 1-Pager Generator
           </h1>
-          <p className="text-slate-300 text-lg">
+          <p className="text-gray-300 text-lg font-light">
             Automate quarterly NAV 1-pager generation with AI
           </p>
         </header>
@@ -92,8 +95,8 @@ function App() {
             />
 
             {error && (
-              <div className="mt-6 p-4 bg-red-500/10 border border-red-500 rounded-lg">
-                <p className="text-red-400">{error}</p>
+              <div className="mt-6 p-4 bg-red-900/20 border-2 border-red-500 rounded-lg">
+                <p className="text-red-300 font-medium">{error}</p>
               </div>
             )}
 
@@ -108,10 +111,10 @@ function App() {
               <button
                 onClick={handleGenerate}
                 disabled={processing || !files.template}
-                className={`px-8 py-4 rounded-lg font-semibold text-lg transition-all ${
+                className={`px-10 py-4 rounded-full font-bold text-sm uppercase tracking-wider transition-all ${
                   processing || !files.template
-                    ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl'
+                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                    : 'bg-[#FF5722] hover:bg-[#E64A19] text-white shadow-lg hover:shadow-xl'
                 }`}
               >
                 {processing ? 'Generating...' : 'Generate NAV 1-Pager'}

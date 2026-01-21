@@ -14,10 +14,10 @@ const FileUploadBox = ({ title, description, file, onDrop, accept, disabled }) =
       {...getRootProps()}
       className={`border-2 border-dashed rounded-lg p-6 transition-all cursor-pointer ${
         isDragActive
-          ? 'border-blue-400 bg-blue-500/10'
+          ? 'border-[#FF5722] bg-[#FF5722]/10'
           : file
-          ? 'border-green-400 bg-green-500/10'
-          : 'border-slate-600 bg-slate-800/50 hover:border-slate-500'
+          ? 'border-[#FF5722] bg-[#374A5E]'
+          : 'border-gray-600 bg-[#374A5E] hover:border-[#FF5722]/50'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <input {...getInputProps()} />
@@ -25,7 +25,7 @@ const FileUploadBox = ({ title, description, file, onDrop, accept, disabled }) =
         <div className="mb-2">
           {file ? (
             <svg
-              className="mx-auto h-12 w-12 text-green-400"
+              className="mx-auto h-12 w-12 text-[#FF5722]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -39,7 +39,7 @@ const FileUploadBox = ({ title, description, file, onDrop, accept, disabled }) =
             </svg>
           ) : (
             <svg
-              className="mx-auto h-12 w-12 text-slate-400"
+              className="mx-auto h-12 w-12 text-gray-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -53,12 +53,12 @@ const FileUploadBox = ({ title, description, file, onDrop, accept, disabled }) =
             </svg>
           )}
         </div>
-        <h3 className="font-semibold text-lg mb-1">{title}</h3>
-        <p className="text-sm text-slate-400 mb-2">{description}</p>
+        <h3 className="font-bold text-sm uppercase tracking-wider mb-1">{title}</h3>
+        <p className="text-sm text-gray-400 mb-2">{description}</p>
         {file ? (
-          <p className="text-sm text-green-400 font-medium">{file.name}</p>
+          <p className="text-sm text-[#FF5722] font-medium">{file.name}</p>
         ) : (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-gray-500">
             {isDragActive ? 'Drop file here' : 'Click or drag file here'}
           </p>
         )}
@@ -80,8 +80,8 @@ export default function FileUpload({ files, onFilesChange, disabled }) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold mb-2">Upload Required Documents</h2>
-        <p className="text-slate-400">
+        <h2 className="text-2xl font-bold mb-2 uppercase tracking-wide">Upload Required Documents</h2>
+        <p className="text-gray-400">
           Upload all four documents to generate your NAV 1-pager
         </p>
       </div>

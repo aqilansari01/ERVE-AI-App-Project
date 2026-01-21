@@ -15,11 +15,11 @@ export default function DownloadResult({ result, onReset }) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="bg-gradient-to-br from-green-500/10 to-blue-500/10 rounded-lg p-8 border border-green-500/30">
-        <div className="text-center space-y-6">
+      <div className="bg-[#374A5E] rounded-lg p-12 border border-gray-600">
+        <div className="text-center space-y-8">
           <div className="flex justify-center">
             <svg
-              className="h-20 w-20 text-green-400"
+              className="h-20 w-20 text-[#FF5722]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -34,8 +34,8 @@ export default function DownloadResult({ result, onReset }) {
           </div>
 
           <div>
-            <h2 className="text-3xl font-bold mb-2">Success!</h2>
-            <p className="text-slate-300">
+            <h2 className="text-3xl font-bold mb-2 uppercase tracking-wide">Success!</h2>
+            <p className="text-gray-300">
               Your NAV 1-pager has been generated successfully
             </p>
           </div>
@@ -43,14 +43,14 @@ export default function DownloadResult({ result, onReset }) {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={handleDownload}
-              className="px-8 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl"
+              className="px-10 py-4 bg-[#FF5722] hover:bg-[#E64A19] rounded-full font-bold text-sm uppercase tracking-wider transition-all shadow-lg hover:shadow-xl"
             >
               Download NAV 1-Pager
             </button>
 
             <button
               onClick={onReset}
-              className="px-8 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition-all"
+              className="px-10 py-4 bg-transparent border-2 border-white hover:bg-white/10 rounded-full font-bold text-sm uppercase tracking-wider transition-all"
             >
               Generate Another
             </button>

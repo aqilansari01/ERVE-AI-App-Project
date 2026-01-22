@@ -1,6 +1,4 @@
-import { uploadFile } from './supabase'
 import {
-  analyzeDocument,
   extractTextFromPDF,
   extractQuarterlyFinancials,
   extractExitCasesTable,
@@ -40,21 +38,7 @@ export const processNAVDocuments = async (
   progressCallback
 ) => {
   try {
-    progressCallback('Starting document processing...', 5)
-
-    const timestamp = Date.now()
-    const uploadPromises = []
-
-    progressCallback('Uploading documents to storage...', 10)
-
-    Object.entries(files).forEach(([key, file]) => {
-      if (file) {
-        const path = `${timestamp}/${key}-${file.name}`
-        uploadPromises.push(uploadFile(file, path))
-      }
-    })
-
-    await Promise.all(uploadPromises)
+    progressCallback('Starting document processing...', 10)
 
     progressCallback('Processing PowerPoint template...', 20)
     const templateFile = await extractDocumentContent(

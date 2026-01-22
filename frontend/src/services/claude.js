@@ -23,7 +23,7 @@ ${documentContent}
 Please extract and structure the key information in a clear, organized format.`
 
   const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 4096,
     system: systemPrompt,
     messages: [
@@ -72,7 +72,7 @@ Instructions:
 Generate the complete NAV 1-pager content now, maintaining the original template's structure and formatting.`
 
   const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 8192,
     system: systemPrompt,
     messages: [
@@ -92,7 +92,7 @@ export const extractTextFromPDF = async (base64Content) => {
   const userPrompt = `Extract all text content from this document. Preserve the structure and organization of the information.`
 
   const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 8192,
     system: systemPrompt,
     messages: [
@@ -142,7 +142,7 @@ Example format:
 }`
 
   const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 4096,
     system: systemPrompt,
     messages: [
@@ -186,7 +186,7 @@ Example format:
 }`
 
   const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 4096,
     system: systemPrompt,
     messages: [
@@ -234,7 +234,7 @@ Instructions:
 Generate the Company Update section now:`
 
   const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 4096,
     system: systemPrompt,
     messages: [

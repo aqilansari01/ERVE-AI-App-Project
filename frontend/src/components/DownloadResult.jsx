@@ -1,12 +1,10 @@
 export default function DownloadResult({ result, onReset }) {
   const handleDownload = () => {
-    const blob = new Blob([result], {
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    })
-    const url = window.URL.createObjectURL(blob)
+    // Result is already a Blob from pptxgenjs
+    const url = window.URL.createObjectURL(result)
     const a = document.createElement('a')
     a.href = url
-    a.download = `NAV-1-Pager-${new Date().toISOString().split('T')[0]}.docx`
+    a.download = `NAV-1-Pager-${new Date().toISOString().split('T')[0]}.pptx`
     document.body.appendChild(a)
     a.click()
     window.URL.revokeObjectURL(url)

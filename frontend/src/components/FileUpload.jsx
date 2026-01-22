@@ -89,24 +89,21 @@ export default function FileUpload({ files, onFilesChange, disabled }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FileUploadBox
           title="NAV Template"
-          description="Blank NAV template (Word doc)"
+          description="Blank NAV template (PowerPoint .pptx)"
           file={files.template}
           onDrop={handleFileDrop('template')}
           accept={{
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-            'application/msword': ['.doc'],
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
           }}
           disabled={disabled}
         />
 
         <FileUploadBox
           title="Prior Quarter NAV"
-          description="Previous quarter's completed NAV (Word/PDF)"
+          description="Previous quarter's completed NAV (PDF)"
           file={files.priorNav}
           onDrop={handleFileDrop('priorNav')}
           accept={{
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-            'application/msword': ['.doc'],
             'application/pdf': ['.pdf'],
           }}
           disabled={disabled}
@@ -127,12 +124,10 @@ export default function FileUpload({ files, onFilesChange, disabled }) {
 
         <FileUploadBox
           title="Financials"
-          description="Financials document (Excel/PDF)"
+          description="Financials document (PDF)"
           file={files.financials}
           onDrop={handleFileDrop('financials')}
           accept={{
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-            'application/vnd.ms-excel': ['.xls'],
             'application/pdf': ['.pdf'],
           }}
           disabled={disabled}

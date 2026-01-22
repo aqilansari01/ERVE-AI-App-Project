@@ -1,32 +1,44 @@
 import { uploadFile } from './supabase'
-import { analyzeDocument, synthesizeNAVDocument, extractTextFromPDF } from './claude'
-import { generateWordDocument } from './navGenerator'
+import {
+  analyzeDocument,
+  extractTextFromPDF,
+  extractQuarterlyFinancials,
+  extractExitCasesTable,
+  extractCompanyUpdate
+} from './claude'
+import { generatePowerPointDocument } from './navGenerator'
 import {
   parseWordDocument,
-  parseExcelDocument,
   getPDFAsBase64,
+  isPowerPoint,
 } from '../utils/documentParser'
-import { isWordDocument, isPDF, isExcel } from '../utils/fileValidation'
+import { isWordDocument, isPDF } from '../utils/fileValidation'
 
 const extractDocumentContent = async (file, progressCallback) => {
   const filename = file.name
 
-  if (isWordDocument(filename)) {
+  if (isPowerPoint(filename)) {
+    progressCallback('Processing PowerPoint template...', null)
+    // For PowerPoint templates, we'll pass the file directly
+    return file
+  } else if (isWordDocument(filename)) {
     progressCallback('Parsing Word document...', null)
     return await parseWordDocument(file)
   } else if (isPDF(filename)) {
     progressCallback('Extracting text from PDF...', null)
     const base64Content = await getPDFAsBase64(file)
     return await extractTextFromPDF(base64Content)
-  } else if (isExcel(filename)) {
-    progressCallback('Parsing Excel spreadsheet...', null)
-    return await parseExcelDocument(file)
   } else {
     throw new Error(`Unsupported file type: ${filename}`)
   }
 }
 
-export const processNAVDocuments = async (files, progressCallback) => {
+export const processNAVDocuments = async (
+  files,
+  investmentSummary,
+  ragStatus,
+  progressCallback
+) => {
   try {
     progressCallback('Starting document processing...', 5)
 
@@ -44,8 +56,8 @@ export const processNAVDocuments = async (files, progressCallback) => {
 
     await Promise.all(uploadPromises)
 
-    progressCallback('Extracting content from template...', 20)
-    const templateContent = await extractDocumentContent(
+    progressCallback('Processing PowerPoint template...', 20)
+    const templateFile = await extractDocumentContent(
       files.template,
       progressCallback
     )
@@ -56,56 +68,44 @@ export const processNAVDocuments = async (files, progressCallback) => {
       progressCallback
     )
 
-    progressCallback('Extracting content from board notes...', 45)
+    progressCallback('Extracting content from board notes...', 40)
     const boardNotesContent = await extractDocumentContent(
       files.boardNotes,
       progressCallback
     )
 
-    progressCallback('Extracting content from financials...', 55)
+    progressCallback('Extracting content from financials...', 50)
     const financialsContent = await extractDocumentContent(
       files.financials,
       progressCallback
     )
 
-    progressCallback('Analyzing prior quarter NAV...', 60)
-    const priorNavAnalysis = await analyzeDocument(
-      priorNavContent,
-      'Prior Quarter NAV',
-      'Extract key metrics, equity stakes, and any items that should be carried forward to the next quarter.'
-    )
+    progressCallback('Extracting Exit Cases table from prior NAV...', 55)
+    const exitCasesTable = await extractExitCasesTable(priorNavContent)
 
-    progressCallback('Analyzing board notes...', 70)
-    const boardNotesAnalysis = await analyzeDocument(
+    progressCallback('Extracting quarterly financials table...', 60)
+    const quarterlyFinancials = await extractQuarterlyFinancials(financialsContent)
+
+    progressCallback('Extracting company update commentary...', 70)
+    const companyUpdate = await extractCompanyUpdate(
       boardNotesContent,
-      'Board Notes',
-      'Extract key commentary, insights, and narrative points for the NAV 1-pager commentary section.'
-    )
-
-    progressCallback('Analyzing financials...', 75)
-    const financialsAnalysis = await analyzeDocument(
       financialsContent,
-      'Financials',
-      'Extract all financial metrics, performance indicators, and quantitative data that should be included in the NAV 1-pager.'
+      priorNavContent
     )
 
-    progressCallback('Synthesizing NAV 1-pager...', 85)
-    const synthesizedContent = await synthesizeNAVDocument(
-      templateContent,
-      priorNavAnalysis,
-      boardNotesAnalysis,
-      financialsAnalysis
-    )
-
-    progressCallback('Generating Word document...', 95)
-    const wordDocument = await generateWordDocument(
-      synthesizedContent,
-      templateContent
-    )
+    progressCallback('Generating PowerPoint document...', 85)
+    const powerPointDocument = await generatePowerPointDocument({
+      templateFile,
+      investmentSummary,
+      ragStatus,
+      exitCasesTable,
+      quarterlyFinancials,
+      companyUpdate,
+    })
 
     progressCallback('NAV 1-pager generated successfully!', 100)
 
-    return wordDocument
+    return powerPointDocument
   } catch (error) {
     console.error('Error processing NAV documents:', error)
     throw new Error(

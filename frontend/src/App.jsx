@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import FileUpload from './components/FileUpload'
+import InvestmentSummaryForm from './components/InvestmentSummaryForm'
+import RAGStatusForm from './components/RAGStatusForm'
 import ProcessingStatus from './components/ProcessingStatus'
 import DownloadResult from './components/DownloadResult'
 import { processNAVDocuments } from './services/documentProcessor'
@@ -11,6 +13,29 @@ function App() {
     boardNotes: null,
     financials: null,
   })
+  const [investmentSummary, setInvestmentSummary] = useState({
+    erveInvestmentEUR: '',
+    erveInvestmentUSD: '',
+    investmentRound: '',
+    totalRaised: '',
+    erveOwnership: '',
+    securityType: '',
+    otherShareholders: '',
+    boardMember: '',
+    boardObserver: '',
+    monthlyBurn: '',
+    fume: '',
+    preMoneyValuation: '',
+    postMoneyValuation: '',
+  })
+  const [ragStatus, setRAGStatus] = useState({
+    financialsStatus: '',
+    cashStatus: '',
+    marketStatus: '',
+    teamStatus: '',
+    governanceStatus: '',
+    overallStatus: '',
+  })
   const [processing, setProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
   const [statusMessage, setStatusMessage] = useState('')
@@ -20,6 +45,14 @@ function App() {
   const handleFilesChange = (newFiles) => {
     setFiles(newFiles)
     setError(null)
+  }
+
+  const handleInvestmentSummaryChange = (newData) => {
+    setInvestmentSummary(newData)
+  }
+
+  const handleRAGStatusChange = (newData) => {
+    setRAGStatus(newData)
   }
 
   const handleGenerate = async () => {
@@ -39,6 +72,8 @@ function App() {
 
       const generatedDoc = await processNAVDocuments(
         files,
+        investmentSummary,
+        ragStatus,
         (message, progressValue) => {
           setStatusMessage(message)
           setProgress(progressValue)
@@ -91,6 +126,18 @@ function App() {
             <FileUpload
               files={files}
               onFilesChange={handleFilesChange}
+              disabled={processing}
+            />
+
+            <InvestmentSummaryForm
+              data={investmentSummary}
+              onChange={handleInvestmentSummaryChange}
+              disabled={processing}
+            />
+
+            <RAGStatusForm
+              data={ragStatus}
+              onChange={handleRAGStatusChange}
               disabled={processing}
             />
 

@@ -118,3 +118,132 @@ export const extractTextFromPDF = async (base64Content) => {
 
   return message.content[0].text
 }
+
+export const extractQuarterlyFinancials = async (financialsContent) => {
+  const systemPrompt = `You are a financial data extraction specialist. Your task is to extract quarterly financial metrics from financial documents.`
+
+  const userPrompt = `From the following financials document, extract the quarterly financials table data. I need:
+
+- ARR (Annual Recurring Revenue) for each period
+- Revenue for each period
+- GM (Gross Margin) for each period
+- EBITDA for each period
+- FTEs (Full-Time Employees) for each period
+
+Document content:
+${financialsContent}
+
+Please return the data as a structured JSON object with periods as keys (e.g., "Dec-24", "Mar-25", "Jun-25", "Sep-25", "FY23", "FY24", "FY25", "LTM") and metrics as nested objects. Use null for missing values.
+
+Example format:
+{
+  "Dec-24": { "ARR": 10.5, "Revenue": 2.5, "GM": 70, "EBITDA": -0.5, "FTEs": 50 },
+  "Mar-25": { "ARR": 12.0, "Revenue": 3.0, "GM": 72, "EBITDA": -0.3, "FTEs": 55 }
+}`
+
+  const message = await client.messages.create({
+    model: 'claude-3-5-sonnet-20241022',
+    max_tokens: 4096,
+    system: systemPrompt,
+    messages: [
+      {
+        role: 'user',
+        content: userPrompt,
+      },
+    ],
+  })
+
+  try {
+    return JSON.parse(message.content[0].text)
+  } catch (error) {
+    console.error('Error parsing quarterly financials:', error)
+    return {}
+  }
+}
+
+export const extractExitCasesTable = async (priorNavContent) => {
+  const systemPrompt = `You are a financial data extraction specialist focused on venture capital NAV documents.`
+
+  const userPrompt = `From the following Prior Quarter NAV document, extract the Exit Cases table/valuation scenarios.
+
+This typically includes scenarios like:
+- Base Case
+- Downside Case
+- Upside Case
+
+For each scenario, extract relevant metrics like valuation multiples, revenue/EBITDA assumptions, and resulting valuations.
+
+Document content:
+${priorNavContent}
+
+Please return the data as a structured JSON object. If the exact structure varies, extract whatever exit cases or valuation scenarios are present.
+
+Example format:
+{
+  "Base Case": { "Multiple": "5.0x ARR", "Valuation": "€60.0m", "ERVE Value": "€9.0m" },
+  "Downside": { "Multiple": "3.0x ARR", "Valuation": "€36.0m", "ERVE Value": "€5.4m" },
+  "Upside": { "Multiple": "8.0x ARR", "Valuation": "€96.0m", "ERVE Value": "€14.4m" }
+}`
+
+  const message = await client.messages.create({
+    model: 'claude-3-5-sonnet-20241022',
+    max_tokens: 4096,
+    system: systemPrompt,
+    messages: [
+      {
+        role: 'user',
+        content: userPrompt,
+      },
+    ],
+  })
+
+  try {
+    return JSON.parse(message.content[0].text)
+  } catch (error) {
+    console.error('Error parsing exit cases:', error)
+    return {}
+  }
+}
+
+export const extractCompanyUpdate = async (
+  boardNotesContent,
+  financialsContent,
+  priorNavContent
+) => {
+  const systemPrompt = `You are an expert at creating executive summaries for venture capital NAV documents. Your task is to synthesize company updates from board notes and financial data.`
+
+  const userPrompt = `Create a company update commentary section for a NAV 1-pager by synthesizing information from the following sources:
+
+BOARD NOTES:
+${boardNotesContent}
+
+LATEST FINANCIALS:
+${financialsContent}
+
+PRIOR QUARTER NAV (for context and structure):
+${priorNavContent}
+
+Instructions:
+1. Follow the general structure and tone from the prior quarter NAV
+2. Include key highlights from the board notes
+3. Reference important financial metrics and performance
+4. Keep it concise (3-5 bullet points or 2-3 short paragraphs)
+5. Focus on material developments, progress, and key metrics
+6. Maintain a professional, objective tone
+
+Generate the Company Update section now:`
+
+  const message = await client.messages.create({
+    model: 'claude-3-5-sonnet-20241022',
+    max_tokens: 4096,
+    system: systemPrompt,
+    messages: [
+      {
+        role: 'user',
+        content: userPrompt,
+      },
+    ],
+  })
+
+  return message.content[0].text
+}

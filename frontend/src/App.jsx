@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import FileUpload from './components/FileUpload'
 import InvestmentSummaryForm from './components/InvestmentSummaryForm'
 import RAGStatusForm from './components/RAGStatusForm'
@@ -13,34 +13,68 @@ function App() {
     boardNotes: null,
     financials: null,
   })
-  const [investmentSummary, setInvestmentSummary] = useState({
-    erveInvestmentEUR: '',
-    erveInvestmentUSD: '',
-    investmentRound: '',
-    totalRaised: '',
-    erveOwnership: '',
-    securityType: '',
-    otherShareholders: '',
-    boardMember: '',
-    boardObserver: '',
-    monthlyBurn: '',
-    fume: '',
-    preMoneyValuation: '',
-    postMoneyValuation: '',
+
+  // Load saved data from localStorage on mount
+  const [investmentSummary, setInvestmentSummary] = useState(() => {
+    const saved = localStorage.getItem('nav-investment-summary')
+    if (saved) {
+      try {
+        return JSON.parse(saved)
+      } catch (e) {
+        console.error('Error parsing saved investment summary:', e)
+      }
+    }
+    return {
+      erveInvestmentEUR: '',
+      erveInvestmentUSD: '',
+      investmentRound: '',
+      totalRaised: '',
+      erveOwnership: '',
+      securityType: '',
+      otherShareholders: '',
+      boardMember: '',
+      boardObserver: '',
+      monthlyBurn: '',
+      fume: '',
+      preMoneyValuation: '',
+      postMoneyValuation: '',
+    }
   })
-  const [ragStatus, setRAGStatus] = useState({
-    financialsStatus: '',
-    cashStatus: '',
-    marketStatus: '',
-    teamStatus: '',
-    governanceStatus: '',
-    overallStatus: '',
+
+  const [ragStatus, setRAGStatus] = useState(() => {
+    const saved = localStorage.getItem('nav-rag-status')
+    if (saved) {
+      try {
+        return JSON.parse(saved)
+      } catch (e) {
+        console.error('Error parsing saved RAG status:', e)
+      }
+    }
+    return {
+      financialsStatus: '',
+      cashStatus: '',
+      marketStatus: '',
+      teamStatus: '',
+      governanceStatus: '',
+      overallStatus: '',
+    }
   })
+
   const [processing, setProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
   const [statusMessage, setStatusMessage] = useState('')
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+
+  // Save investment summary to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('nav-investment-summary', JSON.stringify(investmentSummary))
+  }, [investmentSummary])
+
+  // Save RAG status to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('nav-rag-status', JSON.stringify(ragStatus))
+  }, [ragStatus])
 
   const handleFilesChange = (newFiles) => {
     setFiles(newFiles)
@@ -106,6 +140,41 @@ function App() {
     setError(null)
   }
 
+  const handleClearSavedData = () => {
+    if (window.confirm('Are you sure you want to clear all saved form data? This cannot be undone.')) {
+      // Clear investment summary
+      const emptyInvestmentSummary = {
+        erveInvestmentEUR: '',
+        erveInvestmentUSD: '',
+        investmentRound: '',
+        totalRaised: '',
+        erveOwnership: '',
+        securityType: '',
+        otherShareholders: '',
+        boardMember: '',
+        boardObserver: '',
+        monthlyBurn: '',
+        fume: '',
+        preMoneyValuation: '',
+        postMoneyValuation: '',
+      }
+      setInvestmentSummary(emptyInvestmentSummary)
+      localStorage.removeItem('nav-investment-summary')
+
+      // Clear RAG status
+      const emptyRAGStatus = {
+        financialsStatus: '',
+        cashStatus: '',
+        marketStatus: '',
+        teamStatus: '',
+        governanceStatus: '',
+        overallStatus: '',
+      }
+      setRAGStatus(emptyRAGStatus)
+      localStorage.removeItem('nav-rag-status')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#2C3E50] text-white">
       {/* Orange top stripe like Eight Roads */}
@@ -140,6 +209,17 @@ function App() {
               onChange={handleRAGStatusChange}
               disabled={processing}
             />
+
+            {/* Clear saved data button */}
+            <div className="mt-6 text-center">
+              <button
+                onClick={handleClearSavedData}
+                disabled={processing}
+                className="text-sm text-gray-400 hover:text-[#FF5722] underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Clear Saved Form Data
+              </button>
+            </div>
 
             {error && (
               <div className="mt-6 p-4 bg-red-900/20 border-2 border-red-500 rounded-lg">

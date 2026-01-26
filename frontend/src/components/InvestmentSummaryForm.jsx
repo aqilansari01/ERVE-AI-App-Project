@@ -15,7 +15,141 @@ export default function InvestmentSummaryForm({ data, onChange, disabled }) {
         </p>
       </div>
 
+      {/* Company Header Information */}
       <div className="bg-[#374A5E] rounded-lg p-6 border border-gray-600">
+        <h3 className="text-lg font-bold mb-4 text-[#FF5722]">Company Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+              Company Name
+            </label>
+            <input
+              type="text"
+              value={data.companyName || ''}
+              onChange={(e) => handleChange('companyName', e.target.value)}
+              disabled={disabled}
+              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              placeholder="e.g., Villain"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+              Company Description
+            </label>
+            <textarea
+              value={data.companyDescription || ''}
+              onChange={(e) => handleChange('companyDescription', e.target.value)}
+              disabled={disabled}
+              rows="3"
+              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              placeholder="e.g., Villain, founded in Prague in 2018, provides cloud-based project management, time tracking, and invoicing software..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+              Founded Year
+            </label>
+            <input
+              type="text"
+              value={data.foundedYear || ''}
+              onChange={(e) => handleChange('foundedYear', e.target.value)}
+              disabled={disabled}
+              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              placeholder="e.g., 2019"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+              Location (City, Country)
+            </label>
+            <input
+              type="text"
+              value={data.location || ''}
+              onChange={(e) => handleChange('location', e.target.value)}
+              disabled={disabled}
+              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              placeholder="e.g., Hamburg, Germany"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+              Website URL
+            </label>
+            <input
+              type="text"
+              value={data.websiteUrl || ''}
+              onChange={(e) => handleChange('websiteUrl', e.target.value)}
+              disabled={disabled}
+              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              placeholder="e.g., https://www.example.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+              Current Quarter NAV (EUR)
+            </label>
+            <input
+              type="text"
+              value={data.currentQuarterNAV || ''}
+              onChange={(e) => handleChange('currentQuarterNAV', e.target.value)}
+              disabled={disabled}
+              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              placeholder="e.g., €19.0m"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+              Current Quarter NAV (USD)
+            </label>
+            <input
+              type="text"
+              value={data.currentQuarterNAVUSD || ''}
+              onChange={(e) => handleChange('currentQuarterNAVUSD', e.target.value)}
+              disabled={disabled}
+              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              placeholder="e.g., $21.9m"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+              Prior Quarter NAV (EUR)
+            </label>
+            <input
+              type="text"
+              value={data.priorQuarterNAV || ''}
+              onChange={(e) => handleChange('priorQuarterNAV', e.target.value)}
+              disabled={disabled}
+              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              placeholder="e.g., €19.0m"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+              Prior Quarter NAV (USD)
+            </label>
+            <input
+              type="text"
+              value={data.priorQuarterNAVUSD || ''}
+              onChange={(e) => handleChange('priorQuarterNAVUSD', e.target.value)}
+              disabled={disabled}
+              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              placeholder="e.g., $22.3m"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Investment Details */}
+      <div className="bg-[#374A5E] rounded-lg p-6 border border-gray-600">
+        <h3 className="text-lg font-bold mb-4 text-[#FF5722]">Investment Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* ERVE investment amount in EUR */}
           <div>

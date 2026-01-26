@@ -25,6 +25,15 @@ function App() {
       }
     }
     return {
+      companyName: '',
+      companyDescription: '',
+      foundedYear: '',
+      location: '',
+      websiteUrl: '',
+      currentQuarterNAV: '',
+      currentQuarterNAVUSD: '',
+      priorQuarterNAV: '',
+      priorQuarterNAVUSD: '',
       erveInvestmentEUR: '',
       erveInvestmentUSD: '',
       investmentRound: '',

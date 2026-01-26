@@ -41,10 +41,88 @@ export const generatePowerPointDocument = async ({
 
     const getRAGColor = (status) => ragColors[status] || colors.mediumGray
 
+    // ========== HEADER SECTION ==========
+
+    // Company name and description (main title)
+    const companyTitle = investmentSummary.companyName
+      ? `${investmentSummary.companyName} is a ${investmentSummary.companyDescription || ''}`.trim()
+      : 'Company Name'
+
+    slide.addText(companyTitle, {
+      x: 0.3,
+      y: 0.3,
+      w: 7.0,
+      h: 0.4,
+      fontSize: 18,
+      bold: false,
+      color: colors.darkGray,
+      fontFace: 'Georgia',
+    })
+
+    // Proposed NAV valuation (subtitle)
+    const currentQ = 'Q4-25' // Could be parameterized
+    const priorQ = 'Q3-25'   // Could be parameterized
+    const navSubtitle = `Proposed NAV valuation ${currentQ}: ${investmentSummary.currentQuarterNAV || '€0.0m'} / ${investmentSummary.currentQuarterNAVUSD || '$0.0m'} (${priorQ}: ${investmentSummary.priorQuarterNAV || '€0.0m'} / ${investmentSummary.priorQuarterNAVUSD || '$0.0m'})`
+
+    slide.addText(navSubtitle, {
+      x: 0.3,
+      y: 0.65,
+      w: 7.0,
+      h: 0.25,
+      fontSize: 11,
+      bold: true,
+      color: colors.mediumGray,
+      fontFace: 'Georgia',
+    })
+
+    // Teal horizontal line
+    slide.addShape(pptx.shapes.RECTANGLE, {
+      x: 0.3,
+      y: 0.95,
+      w: 9.5,
+      h: 0.08,
+      fill: { color: colors.teal },
+      line: { type: 'none' },
+    })
+
+    // Founded year and location (top right)
+    slide.addText(`Founded ${investmentSummary.foundedYear || 'YYYY'}`, {
+      x: 7.5,
+      y: 0.3,
+      w: 2.3,
+      h: 0.2,
+      fontSize: 9,
+      bold: false,
+      color: colors.darkGray,
+      align: 'right',
+    })
+
+    slide.addText(investmentSummary.location || 'Location', {
+      x: 7.5,
+      y: 0.5,
+      w: 2.3,
+      h: 0.2,
+      fontSize: 9,
+      bold: false,
+      color: colors.darkGray,
+      align: 'right',
+    })
+
+    slide.addText(investmentSummary.websiteUrl || '', {
+      x: 7.5,
+      y: 0.7,
+      w: 2.3,
+      h: 0.2,
+      fontSize: 8,
+      bold: false,
+      color: colors.mediumGray,
+      align: 'right',
+    })
+
     // ========== LEFT SIDE LAYOUT ==========
 
     // 1. Investment Summary Section (top left)
-    let leftY = 1.0
+    let leftY = 1.15  // Adjusted to be below header
     const leftX = 0.3
     const leftWidth = 5.2
 
@@ -52,13 +130,29 @@ export const generatePowerPointDocument = async ({
       x: leftX,
       y: leftY,
       w: leftWidth,
-      h: 0.3,
+      h: 0.25,
       fontSize: 9,
       bold: true,
       color: colors.darkGray,
     })
 
-    leftY += 0.35
+    leftY += 0.3
+
+    // Company description paragraph
+    if (investmentSummary.companyDescription) {
+      slide.addText(investmentSummary.companyDescription, {
+        x: leftX,
+        y: leftY,
+        w: leftWidth,
+        h: 0.6,
+        fontSize: 7,
+        bold: false,
+        color: colors.darkGray,
+        valign: 'top',
+        lineSpacing: 12,
+      })
+      leftY += 0.65
+    }
 
     // Investment summary table - simplified structure
     const investmentTableRows = [
@@ -430,7 +524,7 @@ export const generatePowerPointDocument = async ({
 
     const rightX = 5.7
     const rightWidth = 4.1
-    let rightY = 1.0
+    let rightY = 1.15  // Match left side starting position
 
     // 5. Company Update Section (gray box)
     slide.addShape(pptx.shapes.RECTANGLE, {

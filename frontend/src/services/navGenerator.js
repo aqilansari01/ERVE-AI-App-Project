@@ -11,224 +11,503 @@ export const generatePowerPointDocument = async ({
   try {
     const pptx = new pptxgen()
 
-    // Set presentation properties
+    // Set presentation properties to match template
     pptx.author = 'Eight Roads'
     pptx.company = 'Eight Roads'
     pptx.title = 'NAV 1-Pager'
+    pptx.layout = 'LAYOUT_WIDE'
 
     // Create the single slide
     const slide = pptx.addSlide()
 
-    // Define colors matching Eight Roads branding
+    // Define colors matching Eight Roads template
     const colors = {
-      navy: '2C3E50',
-      orange: 'FF5722',
+      navy: '354A5F',
+      orange: 'FF8533',
       white: 'FFFFFF',
-      gray: '666666',
-      lightGray: 'CCCCCC',
+      darkGray: '595959',
+      mediumGray: '808080',
+      lightGray: 'D9D9D9',
+      veryLightGray: 'F2F2F2',
+      teal: '4DBFAF',
     }
 
     // RAG Status color mapping
     const ragColors = {
-      Green: '00A651',
-      Amber: 'FFA500',
-      Red: 'D32F2F',
+      Green: '4DBFAF',
+      Amber: 'FFC000',
+      Red: 'C00000',
     }
 
-    // Helper function to get RAG color
-    const getRAGColor = (status) => ragColors[status] || colors.gray
+    const getRAGColor = (status) => ragColors[status] || colors.mediumGray
 
-    // 1. Add RAG Status Indicators at the top (small boxes)
-    const ragIndicators = [
-      { label: 'Financials', status: ragStatus.financialsStatus, x: 0.3, y: 0.3 },
-      { label: 'Cash', status: ragStatus.cashStatus, x: 1.2, y: 0.3 },
-      { label: 'Market', status: ragStatus.marketStatus, x: 2.1, y: 0.3 },
-      { label: 'Team', status: ragStatus.teamStatus, x: 3.0, y: 0.3 },
-      { label: 'Governance', status: ragStatus.governanceStatus, x: 3.9, y: 0.3 },
-      { label: 'Overall', status: ragStatus.overallStatus, x: 4.8, y: 0.3 },
+    // ========== LEFT SIDE LAYOUT ==========
+
+    // 1. Investment Summary Section (top left)
+    let leftY = 1.2
+    const leftX = 0.4
+    const leftWidth = 5.0
+
+    slide.addText('Investment summary', {
+      x: leftX,
+      y: leftY,
+      w: leftWidth,
+      h: 0.25,
+      fontSize: 10,
+      bold: true,
+      color: colors.darkGray,
+    })
+
+    leftY += 0.35
+
+    // Investment summary fields in table format
+    const investmentTableData = [
+      [
+        { text: 'ERVE investment', options: { fontSize: 8, color: colors.darkGray } },
+        { text: investmentSummary.erveInvestmentEUR ? `€${investmentSummary.erveInvestmentEUR}m` : '', options: { fontSize: 8 } },
+        { text: 'Break-down by round', options: { fontSize: 8, color: colors.darkGray } },
+        { text: investmentSummary.investmentRound || '', options: { fontSize: 8 } },
+      ],
+      [
+        { text: 'Total raised', options: { fontSize: 8, color: colors.darkGray } },
+        { text: investmentSummary.totalRaised || '', options: { fontSize: 8 }, colSpan: 3 },
+      ],
+      [
+        { text: 'ERVE %', options: { fontSize: 8, color: colors.darkGray } },
+        { text: investmentSummary.erveOwnership ? `${investmentSummary.erveOwnership}%` : '', options: { fontSize: 8 } },
+        { text: 'Security', options: { fontSize: 8, color: colors.darkGray } },
+        { text: investmentSummary.securityType || '', options: { fontSize: 8 } },
+      ],
+      [
+        { text: 'Other shareholders', options: { fontSize: 8, color: colors.darkGray } },
+        { text: investmentSummary.otherShareholders || '', options: { fontSize: 8 }, colSpan: 3 },
+      ],
+      [
+        { text: 'Governance', options: { fontSize: 8, color: colors.darkGray } },
+        { text: '', options: { fontSize: 8 }, colSpan: 3 },
+      ],
+      [
+        { text: 'Cash', options: { fontSize: 8, color: colors.darkGray } },
+        { text: '', options: { fontSize: 8 } },
+        { text: 'Monthly burn', options: { fontSize: 8, color: colors.darkGray } },
+        { text: investmentSummary.monthlyBurn ? `€${investmentSummary.monthlyBurn}m` : '', options: { fontSize: 8 } },
+        { text: 'FUME', options: { fontSize: 8, color: colors.darkGray } },
+        { text: investmentSummary.fume ? `${investmentSummary.fume} months` : '', options: { fontSize: 8 } },
+      ],
+      [
+        { text: 'Last pre-/post-money valuation', options: { fontSize: 8, color: colors.darkGray }, colSpan: 2 },
+        { text: investmentSummary.preMoneyValuation ? `€${investmentSummary.preMoneyValuation}m / €${investmentSummary.postMoneyValuation || 0}m` : '', options: { fontSize: 8 }, colSpan: 2 },
+      ],
+      [
+        { text: 'Q4-25 NAV', options: { fontSize: 8, color: colors.darkGray } },
+        { text: '', options: { fontSize: 8 } },
+        { text: 'Q3-25 NAV', options: { fontSize: 8, color: colors.darkGray } },
+        { text: '', options: { fontSize: 8 } },
+        { text: 'Increase /(Decrease)', options: { fontSize: 8, color: colors.darkGray } },
+        { text: '', options: { fontSize: 8 } },
+      ],
     ]
 
-    ragIndicators.forEach(({ label, status, x, y }) => {
-      // Label text
+    slide.addTable(investmentTableData, {
+      x: leftX,
+      y: leftY,
+      w: leftWidth,
+      border: { pt: 0.5, color: colors.lightGray },
+      fill: { color: colors.white },
+    })
+
+    leftY += 1.8
+
+    // 2. RAG Status Indicators
+    const ragIndicators = [
+      { label: 'Financials', status: ragStatus.financialsStatus },
+      { label: 'Cash', status: ragStatus.cashStatus },
+      { label: 'Market', status: ragStatus.marketStatus },
+      { label: 'Team', status: ragStatus.teamStatus },
+      { label: 'Governance', status: ragStatus.governanceStatus },
+      { label: 'Overall', status: ragStatus.overallStatus },
+    ]
+
+    const ragBoxWidth = leftWidth / 6
+    ragIndicators.forEach(({ label, status }, index) => {
+      const ragX = leftX + (index * ragBoxWidth)
+
+      // Label
       slide.addText(label, {
-        x,
-        y,
-        w: 0.8,
-        h: 0.25,
-        fontSize: 8,
+        x: ragX,
+        y: leftY,
+        w: ragBoxWidth,
+        h: 0.2,
+        fontSize: 7,
         bold: true,
-        color: colors.navy,
+        color: colors.darkGray,
         align: 'center',
       })
 
-      // Status box
+      // Colored box
       slide.addShape(pptx.shapes.RECTANGLE, {
-        x,
-        y: y + 0.25,
-        w: 0.8,
-        h: 0.15,
+        x: ragX + 0.05,
+        y: leftY + 0.22,
+        w: ragBoxWidth - 0.1,
+        h: 0.18,
         fill: { color: getRAGColor(status) },
       })
     })
 
-    // 2. Investment Summary section (left side)
-    let yPos = 1.0
+    leftY += 0.55
 
-    slide.addText('INVESTMENT SUMMARY', {
-      x: 0.3,
-      y: yPos,
-      w: 4.5,
-      h: 0.3,
-      fontSize: 12,
-      bold: true,
-      color: colors.navy,
+    // 3. Quarterly Actuals Table
+    slide.addText('in EUR'm', {
+      x: leftX,
+      y: leftY,
+      w: 0.8,
+      h: 0.2,
+      fontSize: 8,
+      italic: true,
+      color: colors.mediumGray,
     })
 
-    yPos += 0.4
+    slide.addText('Quarterly Actuals', {
+      x: leftX + 1.5,
+      y: leftY,
+      w: 2.0,
+      h: 0.2,
+      fontSize: 8,
+      bold: true,
+      color: colors.darkGray,
+      align: 'center',
+    })
 
-    const investmentDetails = [
-      { label: 'ERVE Investment', value: `€${parseFloat(investmentSummary.erveInvestmentEUR || 0).toFixed(1)}m (${investmentSummary.investmentRound || 'N/A'})` },
-      { label: 'Total Raised', value: investmentSummary.totalRaised || 'N/A' },
-      { label: 'ERVE %', value: `${investmentSummary.erveOwnership || 0}%` },
-      { label: 'Security', value: investmentSummary.securityType || 'N/A' },
-      { label: 'Other Shareholders', value: investmentSummary.otherShareholders || 'N/A' },
-      { label: 'Board Member', value: investmentSummary.boardMember || 'N/A' },
-      { label: 'Board Observer', value: investmentSummary.boardObserver || 'N/A' },
-      { label: 'Monthly Burn', value: `€${parseFloat(investmentSummary.monthlyBurn || 0).toFixed(1)}m` },
-      { label: 'FUME', value: `${investmentSummary.fume || 0} months` },
-      { label: 'Last Pre-Money', value: `€${parseFloat(investmentSummary.preMoneyValuation || 0).toFixed(1)}m` },
-      { label: 'Last Post-Money', value: `€${parseFloat(investmentSummary.postMoneyValuation || 0).toFixed(1)}m` },
+    slide.addText('Actual', {
+      x: leftX + 3.8,
+      y: leftY,
+      w: 0.4,
+      h: 0.2,
+      fontSize: 8,
+      bold: true,
+      color: colors.darkGray,
+      align: 'center',
+    })
+
+    slide.addText('Actual', {
+      x: leftX + 4.2,
+      y: leftY,
+      w: 0.4,
+      h: 0.2,
+      fontSize: 8,
+      bold: true,
+      color: colors.darkGray,
+      align: 'center',
+    })
+
+    slide.addText('Budget', {
+      x: leftX + 4.6,
+      y: leftY,
+      w: 0.4,
+      h: 0.2,
+      fontSize: 8,
+      bold: true,
+      color: colors.darkGray,
+      align: 'center',
+    })
+
+    leftY += 0.25
+
+    // Build quarterly financials table
+    const finTableData = []
+
+    // Header row
+    const finHeaders = [
+      { text: 'YF 31st Dec', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+      { text: 'Dec-24', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+      { text: 'Mar-25', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+      { text: 'Jun-25', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+      { text: 'Sep-25', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+      { text: 'LTM', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+      { text: 'FY23', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+      { text: 'FY24', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+      { text: 'FY25', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+    ]
+    finTableData.push(finHeaders)
+
+    // Data rows
+    const metrics = ['ARR', 'Revenue', 'GM', 'EBITDA', 'FTEs']
+    const periods = ['Dec-24', 'Mar-25', 'Jun-25', 'Sep-25', 'LTM', 'FY23', 'FY24', 'FY25']
+
+    metrics.forEach(metric => {
+      const row = [{ text: metric, options: { fontSize: 7, bold: true } }]
+      periods.forEach(period => {
+        const value = quarterlyFinancials?.[period]?.[metric]
+        row.push({ text: value != null ? String(value) : '', options: { fontSize: 7 } })
+      })
+      finTableData.push(row)
+    })
+
+    slide.addTable(finTableData, {
+      x: leftX,
+      y: leftY,
+      w: leftWidth,
+      border: { pt: 0.5, color: colors.lightGray },
+      colW: [0.8, 0.5, 0.5, 0.5, 0.5, 0.4, 0.4, 0.4, 0.4],
+    })
+
+    leftY += 1.3
+
+    // 4. Exit Case Table
+    const exitTableData = [
+      [
+        { text: 'Exit case', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+        { text: 'EV/Exit', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+        { text: 'MOIC', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+        { text: 'IRR', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+        { text: 'Key factors', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+      ],
     ]
 
-    investmentDetails.forEach(({ label, value }) => {
-      slide.addText(label + ':', {
-        x: 0.3,
-        y: yPos,
-        w: 1.5,
-        h: 0.2,
-        fontSize: 9,
-        bold: true,
-        color: colors.navy,
-      })
-
-      slide.addText(value, {
-        x: 1.9,
-        y: yPos,
-        w: 2.9,
-        h: 0.2,
-        fontSize: 9,
-        color: colors.gray,
-      })
-
-      yPos += 0.25
-    })
-
-    // 3. Quarterly Financials Table (right side, top)
-    const tableX = 5.0
-    let tableY = 1.0
-
-    slide.addText('QUARTERLY FINANCIALS', {
-      x: tableX,
-      y: tableY,
-      w: 4.5,
-      h: 0.3,
-      fontSize: 12,
-      bold: true,
-      color: colors.navy,
-    })
-
-    tableY += 0.4
-
-    // Create financials table
-    if (quarterlyFinancials && Object.keys(quarterlyFinancials).length > 0) {
-      const periods = Object.keys(quarterlyFinancials)
-      const metrics = ['ARR', 'Revenue', 'GM', 'EBITDA', 'FTEs']
-
-      const tableData = []
-
-      // Header row
-      const headerRow = ['Metric', ...periods]
-      tableData.push(headerRow.map(text => ({ text, options: { bold: true, fontSize: 8, color: colors.white, fill: { color: colors.navy } } })))
-
-      // Data rows
-      metrics.forEach(metric => {
-        const row = [{ text: metric, options: { bold: true, fontSize: 8 } }]
-        periods.forEach(period => {
-          const value = quarterlyFinancials[period]?.[metric]
-          row.push({ text: value != null ? String(value) : '-', options: { fontSize: 8 } })
-        })
-        tableData.push(row)
-      })
-
-      slide.addTable(tableData, {
-        x: tableX,
-        y: tableY,
-        w: 4.5,
-        colW: [0.8, ...Array(periods.length).fill((4.5 - 0.8) / periods.length)],
-        border: { pt: 1, color: colors.lightGray },
-      })
-    }
-
-    // 4. Exit Cases Table (right side, middle)
-    const exitY = tableY + 2.0
-
-    slide.addText('EXIT CASES', {
-      x: tableX,
-      y: exitY,
-      w: 4.5,
-      h: 0.3,
-      fontSize: 12,
-      bold: true,
-      color: colors.navy,
-    })
-
+    // Add exit cases from extracted data
     if (exitCasesTable && Object.keys(exitCasesTable).length > 0) {
-      const exitTableData = []
-
-      // Header row
-      const exitHeaders = ['Scenario', 'Multiple', 'Valuation', 'ERVE Value']
-      exitTableData.push(exitHeaders.map(text => ({ text, options: { bold: true, fontSize: 8, color: colors.white, fill: { color: colors.navy } } })))
-
-      // Data rows
       Object.entries(exitCasesTable).forEach(([scenario, data]) => {
         exitTableData.push([
-          { text: scenario, options: { bold: true, fontSize: 8 } },
-          { text: data.Multiple || '-', options: { fontSize: 8 } },
-          { text: data.Valuation || '-', options: { fontSize: 8 } },
-          { text: data['ERVE Value'] || '-', options: { fontSize: 8 } },
+          { text: scenario, options: { fontSize: 7, bold: true } },
+          { text: data['EV/Exit'] || data.Multiple || '', options: { fontSize: 7 } },
+          { text: data.MOIC || '', options: { fontSize: 7 } },
+          { text: data.IRR || '', options: { fontSize: 7 } },
+          { text: data['Key factors'] || '', options: { fontSize: 7 } },
         ])
       })
-
-      slide.addTable(exitTableData, {
-        x: tableX,
-        y: exitY + 0.4,
-        w: 4.5,
-        colW: [1.2, 1.1, 1.1, 1.1],
-        border: { pt: 1, color: colors.lightGray },
-      })
+    } else {
+      // Default rows if no data
+      exitTableData.push(
+        [
+          { text: 'High (20%)', options: { fontSize: 7, bold: true } },
+          { text: '', options: { fontSize: 7 } },
+          { text: '', options: { fontSize: 7 } },
+          { text: '', options: { fontSize: 7 } },
+          { text: '', options: { fontSize: 7 } },
+        ],
+        [
+          { text: 'Base (60%)', options: { fontSize: 7, bold: true } },
+          { text: '', options: { fontSize: 7 } },
+          { text: '', options: { fontSize: 7 } },
+          { text: '', options: { fontSize: 7 } },
+          { text: '', options: { fontSize: 7 } },
+        ],
+        [
+          { text: 'Low (20%)', options: { fontSize: 7, bold: true } },
+          { text: '', options: { fontSize: 7 } },
+          { text: '', options: { fontSize: 7 } },
+          { text: '', options: { fontSize: 7 } },
+          { text: '', options: { fontSize: 7 } },
+        ]
+      )
     }
 
-    // 5. Company Update (bottom, full width)
-    const updateY = 5.0
+    exitTableData.push([
+      { text: 'Blended exp. Return', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+      { text: '', options: { fontSize: 7, fill: { color: colors.veryLightGray } } },
+      { text: '', options: { fontSize: 7, fill: { color: colors.veryLightGray } } },
+      { text: '', options: { fontSize: 7, fill: { color: colors.veryLightGray } } },
+      { text: '', options: { fontSize: 7, fill: { color: colors.veryLightGray } } },
+    ])
 
-    slide.addText('COMPANY UPDATE', {
-      x: 0.3,
-      y: updateY,
-      w: 9.2,
-      h: 0.3,
-      fontSize: 12,
-      bold: true,
-      color: colors.navy,
+    slide.addTable(exitTableData, {
+      x: leftX,
+      y: leftY,
+      w: leftWidth,
+      border: { pt: 0.5, color: colors.lightGray },
+      colW: [0.8, 0.7, 0.5, 0.5, 2.5],
     })
 
-    slide.addText(companyUpdate || 'No updates available', {
-      x: 0.3,
-      y: updateY + 0.4,
-      w: 9.2,
-      h: 2.0,
+    // ========== RIGHT SIDE LAYOUT ==========
+
+    const rightX = 5.7
+    const rightWidth = 4.0
+    let rightY = 1.2
+
+    // 5. Company Update Section (gray box)
+    slide.addShape(pptx.shapes.RECTANGLE, {
+      x: rightX,
+      y: rightY,
+      w: rightWidth,
+      h: 2.3,
+      fill: { color: colors.veryLightGray },
+      line: { color: colors.lightGray, pt: 0.5 },
+    })
+
+    slide.addText('Company update', {
+      x: rightX + 0.1,
+      y: rightY + 0.1,
+      w: rightWidth - 0.2,
+      h: 0.2,
       fontSize: 9,
-      color: colors.gray,
+      bold: true,
+      color: colors.darkGray,
+    })
+
+    slide.addText(companyUpdate || '', {
+      x: rightX + 0.1,
+      y: rightY + 0.35,
+      w: rightWidth - 0.2,
+      h: 1.85,
+      fontSize: 8,
+      color: colors.darkGray,
       valign: 'top',
+    })
+
+    rightY += 2.5
+
+    // 6. Investment Valuation Section
+    slide.addShape(pptx.shapes.RECTANGLE, {
+      x: rightX,
+      y: rightY,
+      w: rightWidth,
+      h: 0.25,
+      fill: { color: colors.veryLightGray },
+      line: { color: colors.lightGray, pt: 0.5 },
+    })
+
+    slide.addText('Investment valuation', {
+      x: rightX + 0.1,
+      y: rightY + 0.05,
+      w: rightWidth - 0.2,
+      h: 0.2,
+      fontSize: 9,
+      bold: true,
+      color: colors.darkGray,
+      align: 'center',
+    })
+
+    rightY += 0.3
+
+    // Valuation waterfall table
+    const valuationTableData = [
+      [
+        { text: 'Comps-based valuation waterfall', options: { fontSize: 8, bold: true, fill: { color: colors.veryLightGray } } },
+        { text: 'Q4-25 NAV', options: { fontSize: 8, bold: true, fill: { color: colors.orange }, color: colors.white } },
+        { text: 'Q3-25 NAV', options: { fontSize: 8, bold: true, fill: { color: colors.veryLightGray } } },
+        { text: 'Q2-25 NAV', options: { fontSize: 8, bold: true, fill: { color: colors.veryLightGray } } },
+      ],
+      [
+        { text: 'Comparable EV/Rev Multiple pre-discount', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+      ],
+      [
+        { text: 'ARR (€m) (Oct/Jun/Mar)', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+      ],
+      [
+        { text: 'Enterprise value pre-discount (€m)', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+      ],
+      [
+        { text: 'Discount rate applied to multiple', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+      ],
+      [
+        { text: 'Enterprise value after discount (€m)', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+      ],
+      [
+        { text: 'Cash (€m) (Oct/Jun/Mar)', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+      ],
+      [
+        { text: 'Equity value (€m)', options: { fontSize: 7, bold: true } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+      ],
+      [
+        { text: 'ERVE ownership', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+        { text: '', options: { fontSize: 7 } },
+      ],
+      [
+        { text: 'Comps-based value of ERVE equity (€m)', options: { fontSize: 7, bold: true, fill: { color: colors.veryLightGray } } },
+        { text: '', options: { fontSize: 7, fill: { color: colors.veryLightGray } } },
+        { text: '', options: { fontSize: 7, fill: { color: colors.veryLightGray } } },
+        { text: '', options: { fontSize: 7, fill: { color: colors.veryLightGray } } },
+      ],
+    ]
+
+    slide.addTable(valuationTableData, {
+      x: rightX,
+      y: rightY,
+      w: rightWidth,
+      border: { pt: 0.5, color: colors.lightGray },
+      colW: [2.0, 0.7, 0.7, 0.6],
+    })
+
+    rightY += 2.2
+
+    // Methodology and Valuation sections
+    slide.addText('Methodology', {
+      x: rightX,
+      y: rightY,
+      w: rightWidth,
+      h: 0.2,
+      fontSize: 8,
+      bold: true,
+      color: colors.darkGray,
+      fill: { color: colors.veryLightGray },
+    })
+
+    rightY += 0.25
+
+    slide.addText('Valuation (EUR\'m)', {
+      x: rightX,
+      y: rightY,
+      w: rightWidth,
+      h: 0.2,
+      fontSize: 8,
+      bold: true,
+      color: colors.darkGray,
+      fill: { color: colors.veryLightGray },
+    })
+
+    rightY += 0.25
+
+    slide.addText('Implied multiple (pre-money /ARR)', {
+      x: rightX + 0.1,
+      y: rightY,
+      w: rightWidth - 0.2,
+      h: 0.18,
+      fontSize: 7,
+      color: colors.darkGray,
+    })
+
+    // Add Eight Roads logo (bottom right)
+    slide.addText('8°', {
+      x: 9.0,
+      y: 7.0,
+      w: 0.5,
+      h: 0.3,
+      fontSize: 18,
+      bold: true,
+      color: colors.orange,
+    })
+
+    slide.addText('EIGHT ROADS', {
+      x: 9.5,
+      y: 7.05,
+      w: 1.0,
+      h: 0.25,
+      fontSize: 9,
+      bold: true,
+      color: colors.darkGray,
     })
 
     // Generate and return the PowerPoint as a Blob

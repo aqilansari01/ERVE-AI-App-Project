@@ -157,7 +157,7 @@ export const generatePowerPointDocument = async ({
     leftY += 0.55
 
     // 3. Quarterly Actuals Table
-    slide.addText('in EUR'm', {
+    slide.addText('in EUR\'m', {
       x: leftX,
       y: leftY,
       w: 0.8,

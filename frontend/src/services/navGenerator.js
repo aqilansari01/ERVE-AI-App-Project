@@ -41,6 +41,17 @@ export const generatePowerPointDocument = async ({
       throw new Error('Failed to generate PowerPoint')
     }
 
+    // Log what was updated for debugging
+    if (result.updates) {
+      console.log('PowerPoint updates:', result.updates)
+      console.log('Message:', result.message)
+    }
+
+    // Show alert if nothing was updated
+    if (result.updates && result.updates.length === 0) {
+      console.warn('Warning: No elements were updated in the template. The template structure may not match expected format.')
+    }
+
     // Convert base64 back to Blob
     const binaryString = atob(result.file)
     const bytes = new Uint8Array(binaryString.length)

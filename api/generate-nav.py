@@ -55,28 +55,58 @@ class handler(BaseHTTPRequestHandler):
 
             slide = prs.slides[0]
             updates = []
+            debug_info = []
 
             # 1. Update Investment Summary table with manual inputs
+            print("\n" + "="*60)
+            print("STEP 1: Updating Investment Summary Table")
+            print("="*60)
             inv_updated = self.update_investment_summary_table(slide, investment_summary)
             if inv_updated:
                 updates.append(f"Updated investment summary table")
+                debug_info.append("✓ Investment Summary: Updated")
+            else:
+                debug_info.append("✗ Investment Summary: NOT updated (table not found or no data)")
 
             # 2. Update RAG status indicators
+            print("\n" + "="*60)
+            print("STEP 2: Updating RAG Status")
+            print("="*60)
             rag_updated = self.update_rag_status(slide, rag_status)
             if rag_updated:
                 updates.append(f"Updated {rag_updated} RAG indicators")
+                debug_info.append(f"✓ RAG Status: Updated {rag_updated} indicators")
+            else:
+                debug_info.append("✗ RAG Status: NOT updated")
 
             # 3. Update quarterly financials table
+            print("\n" + "="*60)
+            print("STEP 3: Updating Quarterly Financials")
+            print("="*60)
             fin_updated = self.update_quarterly_financials(slide, quarterly_financials)
             if fin_updated:
                 updates.append(f"Updated quarterly financials table")
+                debug_info.append("✓ Quarterly Financials: Updated")
+            else:
+                debug_info.append("✗ Quarterly Financials: NOT updated (table not found or no matching periods)")
 
             # 4. Update company update text
+            print("\n" + "="*60)
+            print("STEP 4: Updating Company Update")
+            print("="*60)
             update_updated = self.update_company_update(slide, company_update)
             if update_updated:
                 updates.append(f"Updated company update section")
+                debug_info.append("✓ Company Update: Updated")
+            else:
+                debug_info.append("✗ Company Update: NOT updated (text box not found or no data)")
 
             # Note: Exit cases and valuation waterfall are left unchanged as requested
+            print("\n" + "="*60)
+            print("SUMMARY OF UPDATES:")
+            print("="*60)
+            for info in debug_info:
+                print(info)
 
             output_stream = BytesIO()
             prs.save(output_stream)
@@ -93,6 +123,7 @@ class handler(BaseHTTPRequestHandler):
                 'success': True,
                 'file': output_base64,
                 'updates': updates,
+                'debugInfo': debug_info,
                 'message': f"Successfully updated: {', '.join(updates)}" if updates else "No updates made"
             }
             self.wfile.write(json.dumps(response).encode('utf-8'))

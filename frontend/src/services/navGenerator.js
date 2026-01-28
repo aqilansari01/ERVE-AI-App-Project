@@ -29,6 +29,19 @@ export const generatePowerPointDocument = async ({
     console.log('Company Update length:', companyUpdate?.length, 'chars')
     console.log('Company Update preview:', companyUpdate?.substring(0, 200))
 
+    // Create a diagnostic summary
+    const diagnosticInfo = []
+    diagnosticInfo.push('DATA BEING SENT:')
+    diagnosticInfo.push(`- ERVE Investment EUR: ${investmentSummary.erveInvestmentEUR || 'NOT SET'}`)
+    diagnosticInfo.push(`- Monthly Burn: ${investmentSummary.monthlyBurn || 'NOT SET'}`)
+    diagnosticInfo.push(`- FUME: ${investmentSummary.fume || 'NOT SET'}`)
+    diagnosticInfo.push(`- Pre-Money Valuation: ${investmentSummary.preMoneyValuation || 'NOT SET'}`)
+    diagnosticInfo.push(`- Post-Money Valuation: ${investmentSummary.postMoneyValuation || 'NOT SET'}`)
+    diagnosticInfo.push(`- Quarterly Financials periods: ${Object.keys(quarterlyFinancials).join(', ') || 'NONE'}`)
+    diagnosticInfo.push(`- Company Update: ${companyUpdate ? companyUpdate.substring(0, 100) + '...' : 'NOT SET'}`)
+
+    console.log(diagnosticInfo.join('\n'))
+
     // Call Python API
     const response = await fetch('/api/generate-nav', {
       method: 'POST',
@@ -55,9 +68,17 @@ export const generatePowerPointDocument = async ({
       console.log('Message:', result.message)
     }
 
-    // Show alert if nothing was updated
-    if (result.updates && result.updates.length === 0) {
-      console.warn('Warning: No elements were updated in the template. The template structure may not match expected format.')
+    // Show debug info in a visible alert
+    if (result.debugInfo) {
+      console.log('Debug Info:', result.debugInfo)
+      alert('Update Status:\n\n' + result.debugInfo.join('\n'))
+    } else if (result.updates) {
+      // Fallback if no debug info
+      if (result.updates.length > 0) {
+        alert(`Successfully updated:\n${result.updates.join('\n')}`)
+      } else {
+        alert('Warning: No sections were updated in the template. Please check that your template matches the expected format.')
+      }
     }
 
     // Convert base64 back to Blob

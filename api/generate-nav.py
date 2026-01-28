@@ -9,6 +9,16 @@ from pptx.dml.color import RGBColor
 import traceback
 
 class handler(BaseHTTPRequestHandler):
+    def set_cell_text(self, cell, text, font_name='Arial', font_size=8, bold=False):
+        """Helper to set cell text with proper formatting"""
+        cell.text = str(text)
+        # Set font for all paragraphs and runs in the cell
+        for paragraph in cell.text_frame.paragraphs:
+            for run in paragraph.runs:
+                run.font.name = font_name
+                run.font.size = Pt(font_size)
+                run.font.bold = bold
+
     def do_POST(self):
         try:
             content_length = int(self.headers['Content-Length'])
@@ -169,18 +179,23 @@ class handler(BaseHTTPRequestHandler):
                                     if i + 1 < len(row.cells) and field_value:
                                         # For ERVE investment, format as €Xm
                                         if field_label == 'erve investment' and field_value:
-                                            row.cells[i + 1].text = f"€{field_value}m"
+                                            self.set_cell_text(row.cells[i + 1], f"€{field_value}m")
+                                            print(f"Updated ERVE investment: €{field_value}m")
                                         # For ERVE %, add %
                                         elif field_label == 'erve %' and field_value:
-                                            row.cells[i + 1].text = f"{field_value}%"
+                                            self.set_cell_text(row.cells[i + 1], f"{field_value}%")
+                                            print(f"Updated ERVE %: {field_value}%")
                                         # For monthly burn, format as €Xm
                                         elif field_label == 'monthly burn' and field_value:
-                                            row.cells[i + 1].text = f"€{field_value}m"
+                                            self.set_cell_text(row.cells[i + 1], f"€{field_value}m")
+                                            print(f"Updated monthly burn: €{field_value}m")
                                         # For FUME, add "months"
                                         elif field_label == 'fume' and field_value:
-                                            row.cells[i + 1].text = f"{field_value} months"
+                                            self.set_cell_text(row.cells[i + 1], f"{field_value} months")
+                                            print(f"Updated FUME: {field_value} months")
                                         else:
-                                            row.cells[i + 1].text = str(field_value)
+                                            self.set_cell_text(row.cells[i + 1], str(field_value))
+                                            print(f"Updated {field_label}: {field_value}")
                                     break
 
                     # Update NAV cells with smarter matching
@@ -211,14 +226,18 @@ class handler(BaseHTTPRequestHandler):
                         # Update the cell based on currency and position
                         if is_current:
                             if is_eur and current_nav_eur:
-                                value_cell.text = current_nav_eur
+                                self.set_cell_text(value_cell, current_nav_eur)
+                                print(f"Updated current NAV EUR: {current_nav_eur}")
                             elif is_usd and current_nav_usd:
-                                value_cell.text = current_nav_usd
+                                self.set_cell_text(value_cell, current_nav_usd)
+                                print(f"Updated current NAV USD: {current_nav_usd}")
                         else:
                             if is_eur and prior_nav_eur:
-                                value_cell.text = prior_nav_eur
+                                self.set_cell_text(value_cell, prior_nav_eur)
+                                print(f"Updated prior NAV EUR: {prior_nav_eur}")
                             elif is_usd and prior_nav_usd:
-                                value_cell.text = prior_nav_usd
+                                self.set_cell_text(value_cell, prior_nav_usd)
+                                print(f"Updated prior NAV USD: {prior_nav_usd}")
 
                     return True
 
@@ -279,7 +298,10 @@ class handler(BaseHTTPRequestHandler):
     def update_quarterly_financials(self, slide, quarterly_financials):
         """Update the quarterly financials table"""
         if not quarterly_financials:
+            print("No quarterly financials data provided")
             return False
+
+        print(f"Quarterly financials data received: {quarterly_financials}")
 
         try:
             # Find the table with "Quarterly Actuals" or metric names
@@ -293,6 +315,7 @@ class handler(BaseHTTPRequestHandler):
                         for cell in row.cells:
                             cell_text = cell.text.strip().lower()
                             if 'yf 31st dec' in cell_text or 'quarterly actual' in cell_text:
+                                print(f"Found financials table with text: {cell_text}")
                                 is_financials_table = True
                                 break
                         if is_financials_table:
@@ -303,6 +326,7 @@ class handler(BaseHTTPRequestHandler):
                         for row in table.rows:
                             first_cell = row.cells[0].text.strip().upper()
                             if first_cell in ['ARR', 'REVENUE', 'GM', 'EBITDA', 'FTES']:
+                                print(f"Found financials table with metric: {first_cell}")
                                 is_financials_table = True
                                 break
 
@@ -313,12 +337,20 @@ class handler(BaseHTTPRequestHandler):
                     header_row = table.rows[0]
                     period_columns = {}
 
+                    print("Header row cells:", [cell.text.strip() for cell in header_row.cells])
+                    print("Available periods in data:", list(quarterly_financials.keys()))
+
                     for col_idx, cell in enumerate(header_row.cells):
                         cell_text = cell.text.strip()
                         for period in quarterly_financials.keys():
                             if period in cell_text:
                                 period_columns[col_idx] = period
+                                print(f"Matched column {col_idx} ({cell_text}) to period {period}")
                                 break
+
+                    if not period_columns:
+                        print("WARNING: No period columns matched!")
+                        return False
 
                     # Update data rows
                     metrics_map = {
@@ -329,20 +361,26 @@ class handler(BaseHTTPRequestHandler):
                         'FTES': 'FTEs'
                     }
 
+                    updates_made = 0
                     for row in table.rows[1:]:
                         first_cell = row.cells[0].text.strip().upper()
 
                         if first_cell in metrics_map:
                             metric_name = metrics_map[first_cell]
+                            print(f"Processing metric: {metric_name}")
 
                             for col_idx, period in period_columns.items():
                                 if col_idx < len(row.cells):
                                     value = quarterly_financials[period].get(metric_name)
                                     if value is not None:
-                                        row.cells[col_idx].text = str(value)
+                                        self.set_cell_text(row.cells[col_idx], str(value))
+                                        print(f"  Updated {metric_name} for {period}: {value}")
+                                        updates_made += 1
 
-                    return True
+                    print(f"Total cell updates in quarterly financials: {updates_made}")
+                    return updates_made > 0
 
+            print("No financials table found")
             return False
 
         except Exception as e:
@@ -353,16 +391,22 @@ class handler(BaseHTTPRequestHandler):
     def update_company_update(self, slide, company_update):
         """Update the company update text box in the gray box"""
         if not company_update:
+            print("No company update data provided")
             return False
+
+        print(f"Company update data received (length: {len(company_update)} chars)")
 
         try:
             # Find text boxes in gray boxes (usually have gray fill)
+            shapes_checked = 0
             for shape in slide.shapes:
                 if shape.has_text_frame:
+                    shapes_checked += 1
                     text_lower = shape.text.lower()
 
                     # Look for "company update" text
                     if 'company update' in text_lower:
+                        print(f"Found 'company update' text box (shape type: {shape.shape_type})")
                         text_frame = shape.text_frame
 
                         # Clear existing text - safer approach
@@ -377,18 +421,26 @@ class handler(BaseHTTPRequestHandler):
                             p1 = text_frame.add_paragraph()
 
                         p1.text = "Company update"
-                        p1.font.bold = True
-                        p1.font.size = Pt(8)
+                        # Set font on runs, not paragraph
+                        for run in p1.runs:
+                            run.font.name = 'Arial'
+                            run.font.bold = True
+                            run.font.size = Pt(8)
 
                         # Add content in second paragraph
                         clean_update = company_update.replace('## Company Update', '').replace('## Company update', '').strip()
                         p2 = text_frame.add_paragraph()
                         p2.text = clean_update
-                        p2.font.size = Pt(7)
                         p2.space_before = Pt(6)
+                        # Set font on runs
+                        for run in p2.runs:
+                            run.font.name = 'Arial'
+                            run.font.size = Pt(7)
 
+                        print(f"Successfully updated company update section")
                         return True
 
+            print(f"Checked {shapes_checked} shapes with text frames, but 'company update' not found")
             return False
 
         except Exception as e:

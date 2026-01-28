@@ -125,18 +125,31 @@ class handler(BaseHTTPRequestHandler):
                         'security': investment_summary.get('securityType', ''),
                         'other shareholders': investment_summary.get('otherShareholders', ''),
                         'governance': f"Board Member: {investment_summary.get('boardMember', '')}, Observer: {investment_summary.get('boardObserver', '')}",
-                        'cash': '',
+                        'cash': investment_summary.get('cash', ''),
                         'monthly burn': investment_summary.get('monthlyBurn', ''),
                         'fume': investment_summary.get('fume', ''),
                         'last pre-/post-money valuation': f"€{investment_summary.get('preMoneyValuation', '')}m / €{investment_summary.get('postMoneyValuation', '')}m" if investment_summary.get('preMoneyValuation') else '',
-                        'q4-25 nav': '',
-                        'q3-25 nav': '',
                     }
+
+                    # Add NAV values with flexible quarter matching
+                    # These will match any cell containing 'nav' (case insensitive)
+                    current_nav_eur = investment_summary.get('currentQuarterNAV', '')
+                    current_nav_usd = investment_summary.get('currentQuarterNAVUSD', '')
+                    prior_nav_eur = investment_summary.get('priorQuarterNAV', '')
+                    prior_nav_usd = investment_summary.get('priorQuarterNAVUSD', '')
+
+                    # Track NAV cells to update them in order
+                    nav_cells = []
 
                     # Iterate through all cells to find and update matching fields
                     for row in table.rows:
                         for i, cell in enumerate(row.cells):
                             cell_text = cell.text.strip().lower()
+
+                            # Special handling for NAV fields (flexible quarter matching)
+                            if 'nav' in cell_text and i + 1 < len(row.cells):
+                                nav_cells.append((cell_text, row.cells[i + 1]))
+                                continue
 
                             # Check if this cell contains a field label
                             for field_label, field_value in field_map.items():
@@ -158,6 +171,40 @@ class handler(BaseHTTPRequestHandler):
                                         else:
                                             row.cells[i + 1].text = str(field_value)
                                     break
+
+                    # Update NAV cells - assume they appear in order: current EUR, current USD, prior EUR, prior USD
+                    # Or we check for EUR/USD in the label text
+                    for label_text, value_cell in nav_cells:
+                        # Determine if EUR or USD based on label
+                        is_eur = '(eur)' in label_text or '€' in label_text
+                        is_usd = '(usd)' in label_text or '$' in label_text or 'usd' in label_text
+
+                        # Try to determine if current or prior quarter
+                        # Usually the table has current quarter listed before prior quarter
+                        # We'll update the first two NAV cells as current, next two as prior
+                        nav_index = nav_cells.index((label_text, value_cell))
+
+                        if nav_index == 0 and current_nav_eur:
+                            # First NAV cell - likely current quarter EUR
+                            value_cell.text = current_nav_eur
+                        elif nav_index == 1 and current_nav_usd:
+                            # Second NAV cell - likely current quarter USD
+                            value_cell.text = current_nav_usd
+                        elif nav_index == 2 and prior_nav_eur:
+                            # Third NAV cell - likely prior quarter EUR
+                            value_cell.text = prior_nav_eur
+                        elif nav_index == 3 and prior_nav_usd:
+                            # Fourth NAV cell - likely prior quarter USD
+                            value_cell.text = prior_nav_usd
+                        elif is_eur and current_nav_eur and 'q4' in label_text:
+                            # More specific matching if we can identify the quarter
+                            value_cell.text = current_nav_eur
+                        elif is_usd and current_nav_usd and 'q4' in label_text:
+                            value_cell.text = current_nav_usd
+                        elif is_eur and prior_nav_eur and 'q3' in label_text:
+                            value_cell.text = prior_nav_eur
+                        elif is_usd and prior_nav_usd and 'q3' in label_text:
+                            value_cell.text = prior_nav_usd
 
                     return True
 

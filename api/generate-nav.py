@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import base64
+import re
 from io import BytesIO
 from pptx import Presentation
 from pptx.util import Inches, Pt
@@ -182,39 +183,42 @@ class handler(BaseHTTPRequestHandler):
                                             row.cells[i + 1].text = str(field_value)
                                     break
 
-                    # Update NAV cells - assume they appear in order: current EUR, current USD, prior EUR, prior USD
-                    # Or we check for EUR/USD in the label text
+                    # Update NAV cells with smarter matching
+                    # Sort NAV cells to handle them in a consistent order (top to bottom)
                     for label_text, value_cell in nav_cells:
                         # Determine if EUR or USD based on label
-                        is_eur = '(eur)' in label_text or '€' in label_text
+                        is_eur = '(eur)' in label_text or '€' in label_text or 'eur' in label_text
                         is_usd = '(usd)' in label_text or '$' in label_text or 'usd' in label_text
 
+                        # If neither EUR nor USD is explicitly mentioned, assume first occurrence is EUR
+                        if not is_eur and not is_usd:
+                            nav_index = nav_cells.index((label_text, value_cell))
+                            is_eur = nav_index % 2 == 0  # Even indices are EUR
+                            is_usd = nav_index % 2 == 1  # Odd indices are USD
+
                         # Try to determine if current or prior quarter
-                        # Usually the table has current quarter listed before prior quarter
-                        # We'll update the first two NAV cells as current, next two as prior
+                        # Check for quarter indicators in the label
                         nav_index = nav_cells.index((label_text, value_cell))
 
-                        if nav_index == 0 and current_nav_eur:
-                            # First NAV cell - likely current quarter EUR
-                            value_cell.text = current_nav_eur
-                        elif nav_index == 1 and current_nav_usd:
-                            # Second NAV cell - likely current quarter USD
-                            value_cell.text = current_nav_usd
-                        elif nav_index == 2 and prior_nav_eur:
-                            # Third NAV cell - likely prior quarter EUR
-                            value_cell.text = prior_nav_eur
-                        elif nav_index == 3 and prior_nav_usd:
-                            # Fourth NAV cell - likely prior quarter USD
-                            value_cell.text = prior_nav_usd
-                        elif is_eur and current_nav_eur and 'q4' in label_text:
-                            # More specific matching if we can identify the quarter
-                            value_cell.text = current_nav_eur
-                        elif is_usd and current_nav_usd and 'q4' in label_text:
-                            value_cell.text = current_nav_usd
-                        elif is_eur and prior_nav_eur and 'q3' in label_text:
-                            value_cell.text = prior_nav_eur
-                        elif is_usd and prior_nav_usd and 'q3' in label_text:
-                            value_cell.text = prior_nav_usd
+                        # First try specific quarter matching (Q4, Q3, Q2, Q1, etc.)
+                        # Extract quarter number if present
+                        quarter_match = re.search(r'q(\d)', label_text)
+
+                        # Determine if this is current or prior based on position and quarter
+                        # Assume NAV cells appear in order: most recent first
+                        is_current = nav_index < len(nav_cells) / 2
+
+                        # Update the cell based on currency and position
+                        if is_current:
+                            if is_eur and current_nav_eur:
+                                value_cell.text = current_nav_eur
+                            elif is_usd and current_nav_usd:
+                                value_cell.text = current_nav_usd
+                        else:
+                            if is_eur and prior_nav_eur:
+                                value_cell.text = prior_nav_eur
+                            elif is_usd and prior_nav_usd:
+                                value_cell.text = prior_nav_usd
 
                     return True
 

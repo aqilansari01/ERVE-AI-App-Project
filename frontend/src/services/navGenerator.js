@@ -21,6 +21,14 @@ export const generatePowerPointDocument = async ({
       companyUpdate,
     }
 
+    // Debug logging
+    console.log('=== Data being sent to Python backend ===')
+    console.log('Investment Summary:', investmentSummary)
+    console.log('RAG Status:', ragStatus)
+    console.log('Quarterly Financials:', quarterlyFinancials)
+    console.log('Company Update length:', companyUpdate?.length, 'chars')
+    console.log('Company Update preview:', companyUpdate?.substring(0, 200))
+
     // Call Python API
     const response = await fetch('/api/generate-nav', {
       method: 'POST',

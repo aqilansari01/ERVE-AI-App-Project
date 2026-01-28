@@ -31,6 +31,16 @@ class handler(BaseHTTPRequestHandler):
             company_update = data.get('companyUpdate', '')
             investment_summary = data.get('investmentSummary', {})
 
+            # Debug logging
+            print("="*60)
+            print("DATA RECEIVED FROM FRONTEND:")
+            print("="*60)
+            print("Investment Summary:", investment_summary)
+            print("RAG Status:", rag_status)
+            print("Quarterly Financials:", quarterly_financials)
+            print("Company Update length:", len(company_update) if company_update else 0)
+            print("="*60)
+
             if not template_base64:
                 self.send_error(400, 'No template file provided')
                 return
@@ -146,7 +156,7 @@ class handler(BaseHTTPRequestHandler):
                         'security': investment_summary.get('securityType', ''),
                         'other shareholders': investment_summary.get('otherShareholders', ''),
                         'governance': governance_value,
-                        'cash': investment_summary.get('cash', ''),
+                        # Note: 'cash' field is not in the form, leave blank in template
                         'monthly burn': investment_summary.get('monthlyBurn', ''),
                         'fume': investment_summary.get('fume', ''),
                         'last pre-/post-money valuation': f"€{investment_summary.get('preMoneyValuation', '')}m / €{investment_summary.get('postMoneyValuation', '')}m" if investment_summary.get('preMoneyValuation') else '',
@@ -162,6 +172,11 @@ class handler(BaseHTTPRequestHandler):
                     # Track NAV cells to update them in order
                     nav_cells = []
 
+                    print("\n=== Processing Investment Summary Table ===")
+                    print(f"Field values to update:")
+                    for field_label, field_value in field_map.items():
+                        print(f"  {field_label}: {repr(field_value)}")
+
                     # Iterate through all cells to find and update matching fields
                     for row in table.rows:
                         for i, cell in enumerate(row.cells):
@@ -175,27 +190,31 @@ class handler(BaseHTTPRequestHandler):
                             # Check if this cell contains a field label
                             for field_label, field_value in field_map.items():
                                 if field_label in cell_text:
+                                    print(f"Found label '{field_label}' in cell: '{cell_text}'")
                                     # Update the cell to the right (next cell in row)
-                                    if i + 1 < len(row.cells) and field_value:
-                                        # For ERVE investment, format as €Xm
-                                        if field_label == 'erve investment' and field_value:
-                                            self.set_cell_text(row.cells[i + 1], f"€{field_value}m")
-                                            print(f"Updated ERVE investment: €{field_value}m")
-                                        # For ERVE %, add %
-                                        elif field_label == 'erve %' and field_value:
-                                            self.set_cell_text(row.cells[i + 1], f"{field_value}%")
-                                            print(f"Updated ERVE %: {field_value}%")
-                                        # For monthly burn, format as €Xm
-                                        elif field_label == 'monthly burn' and field_value:
-                                            self.set_cell_text(row.cells[i + 1], f"€{field_value}m")
-                                            print(f"Updated monthly burn: €{field_value}m")
-                                        # For FUME, add "months"
-                                        elif field_label == 'fume' and field_value:
-                                            self.set_cell_text(row.cells[i + 1], f"{field_value} months")
-                                            print(f"Updated FUME: {field_value} months")
+                                    if i + 1 < len(row.cells):
+                                        if field_value or field_value == 0:  # Allow 0 but not empty string
+                                            # For ERVE investment, format as €Xm
+                                            if field_label == 'erve investment':
+                                                self.set_cell_text(row.cells[i + 1], f"€{field_value}m")
+                                                print(f"  ✓ Updated ERVE investment: €{field_value}m")
+                                            # For ERVE %, add %
+                                            elif field_label == 'erve %':
+                                                self.set_cell_text(row.cells[i + 1], f"{field_value}%")
+                                                print(f"  ✓ Updated ERVE %: {field_value}%")
+                                            # For monthly burn, format as €Xm
+                                            elif field_label == 'monthly burn':
+                                                self.set_cell_text(row.cells[i + 1], f"€{field_value}m")
+                                                print(f"  ✓ Updated monthly burn: €{field_value}m")
+                                            # For FUME, add "months"
+                                            elif field_label == 'fume':
+                                                self.set_cell_text(row.cells[i + 1], f"{field_value} months")
+                                                print(f"  ✓ Updated FUME: {field_value} months")
+                                            else:
+                                                self.set_cell_text(row.cells[i + 1], str(field_value))
+                                                print(f"  ✓ Updated {field_label}: {field_value}")
                                         else:
-                                            self.set_cell_text(row.cells[i + 1], str(field_value))
-                                            print(f"Updated {field_label}: {field_value}")
+                                            print(f"  ✗ Skipped {field_label}: value is empty ({repr(field_value)})")
                                     break
 
                     # Update NAV cells with smarter matching

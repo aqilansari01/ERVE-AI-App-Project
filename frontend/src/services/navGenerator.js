@@ -32,7 +32,9 @@ export const generatePowerPointDocument = async ({
     // Create a diagnostic summary
     const diagnosticInfo = []
     diagnosticInfo.push('DATA BEING SENT:')
-    diagnosticInfo.push(`- ERVE Investment EUR: ${investmentSummary.erveInvestmentEUR || 'NOT SET'}`)
+    diagnosticInfo.push(`- ERVE Investment: ${investmentSummary.erveInvestment || 'NOT SET'} ${investmentSummary.erveInvestmentCurrency || 'EUR'}`)
+    diagnosticInfo.push(`- Current Quarter NAV: ${investmentSummary.currentQuarterNAV || 'NOT SET'} ${investmentSummary.currentQuarterNAVCurrency || 'EUR'}`)
+    diagnosticInfo.push(`- Prior Quarter NAV: ${investmentSummary.priorQuarterNAV || 'NOT SET'} ${investmentSummary.priorQuarterNAVCurrency || 'EUR'}`)
     diagnosticInfo.push(`- Monthly Burn: ${investmentSummary.monthlyBurn || 'NOT SET'}`)
     diagnosticInfo.push(`- FUME: ${investmentSummary.fume || 'NOT SET'}`)
     diagnosticInfo.push(`- Pre-Money Valuation: ${investmentSummary.preMoneyValuation || 'NOT SET'}`)

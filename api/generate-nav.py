@@ -9,6 +9,18 @@ from pptx.dml.color import RGBColor
 import traceback
 
 class handler(BaseHTTPRequestHandler):
+    def get_currency_symbol(self, currency_code):
+        """Get currency symbol from currency code"""
+        symbols = {
+            'EUR': '€',
+            'USD': '$',
+            'GBP': '£',
+            'NOK': 'kr',
+            'CHF': 'CHF',
+            'SEK': 'kr'
+        }
+        return symbols.get(currency_code, currency_code)
+
     def set_cell_text(self, cell, text, font_name='Arial', font_size=8, bold=False):
         """Helper to set cell text with proper formatting"""
         cell.text = str(text)
@@ -177,12 +189,33 @@ class handler(BaseHTTPRequestHandler):
                         governance_parts.append(f"Observer: {board_observer}")
                     governance_value = ', '.join(governance_parts) if governance_parts else ''
 
+                    # Get currency symbols
+                    erve_investment_currency = investment_summary.get('erveInvestmentCurrency', 'EUR')
+                    erve_investment_symbol = self.get_currency_symbol(erve_investment_currency)
+                    investment_round_currency = investment_summary.get('investmentRoundCurrency', 'EUR')
+                    investment_round_symbol = self.get_currency_symbol(investment_round_currency)
+                    total_raised_currency = investment_summary.get('totalRaisedCurrency', 'EUR')
+                    total_raised_symbol = self.get_currency_symbol(total_raised_currency)
+
+                    # Format ERVE investment with currency symbol
+                    erve_investment = investment_summary.get('erveInvestment', '')
+                    erve_investment_formatted = f"{erve_investment_symbol}{erve_investment}m" if erve_investment else ''
+
+                    # Format investment round with currency symbol
+                    investment_round = investment_summary.get('investmentRound', '')
+                    # Investment round is text that may already contain amounts, so we'll prefix with the symbol
+                    # User can type amounts without symbols and we'll use the selected currency
+
+                    # Format total raised with currency symbol
+                    total_raised = investment_summary.get('totalRaised', '')
+                    # Total raised is text, user types the amounts and we use the selected currency
+
                     # Map field labels to values
                     field_map = {
-                        'erve investment': investment_summary.get('erveInvestmentEUR', ''),
-                        'break-down by round': investment_summary.get('investmentRound', ''),
-                        'breakdown by round': investment_summary.get('investmentRound', ''),
-                        'total raised': investment_summary.get('totalRaised', ''),
+                        'erve investment': erve_investment_formatted,
+                        'break-down by round': investment_round,
+                        'breakdown by round': investment_round,
+                        'total raised': total_raised,
                         'erve %': investment_summary.get('erveOwnership', ''),
                         'security': investment_summary.get('securityType', ''),
                         'other shareholders': investment_summary.get('otherShareholders', ''),
@@ -195,10 +228,15 @@ class handler(BaseHTTPRequestHandler):
 
                     # Add NAV values with flexible quarter matching
                     # These will match any cell containing 'nav' (case insensitive)
-                    current_nav_eur = investment_summary.get('currentQuarterNAV', '')
-                    current_nav_usd = investment_summary.get('currentQuarterNAVUSD', '')
-                    prior_nav_eur = investment_summary.get('priorQuarterNAV', '')
-                    prior_nav_usd = investment_summary.get('priorQuarterNAVUSD', '')
+                    current_nav_value = investment_summary.get('currentQuarterNAV', '')
+                    current_nav_currency = investment_summary.get('currentQuarterNAVCurrency', 'EUR')
+                    current_nav_symbol = self.get_currency_symbol(current_nav_currency)
+                    current_nav = f"{current_nav_symbol}{current_nav_value}" if current_nav_value else ''
+
+                    prior_nav_value = investment_summary.get('priorQuarterNAV', '')
+                    prior_nav_currency = investment_summary.get('priorQuarterNAVCurrency', 'EUR')
+                    prior_nav_symbol = self.get_currency_symbol(prior_nav_currency)
+                    prior_nav = f"{prior_nav_symbol}{prior_nav_value}" if prior_nav_value else ''
 
                     # Track NAV cells to update them in order
                     nav_cells = []
@@ -225,10 +263,10 @@ class handler(BaseHTTPRequestHandler):
                                     # Update the cell to the right (next cell in row)
                                     if i + 1 < len(row.cells):
                                         if field_value or field_value == 0:  # Allow 0 but not empty string
-                                            # For ERVE investment, format as €Xm
+                                            # For ERVE investment, already formatted with currency symbol
                                             if field_label == 'erve investment':
-                                                self.set_cell_text(row.cells[i + 1], f"€{field_value}m")
-                                                print(f"  ✓ Updated ERVE investment: €{field_value}m")
+                                                self.set_cell_text(row.cells[i + 1], field_value)
+                                                print(f"  ✓ Updated ERVE investment: {field_value}")
                                             # For ERVE %, add %
                                             elif field_label == 'erve %':
                                                 self.set_cell_text(row.cells[i + 1], f"{field_value}%")
@@ -248,46 +286,30 @@ class handler(BaseHTTPRequestHandler):
                                             print(f"  ✗ Skipped {field_label}: value is empty ({repr(field_value)})")
                                     break
 
-                    # Update NAV cells with smarter matching
-                    # Sort NAV cells to handle them in a consistent order (top to bottom)
-                    for label_text, value_cell in nav_cells:
-                        # Determine if EUR or USD based on label
-                        is_eur = '(eur)' in label_text or '€' in label_text or 'eur' in label_text
-                        is_usd = '(usd)' in label_text or '$' in label_text or 'usd' in label_text
+                    # Update NAV cells
+                    # Assume NAV cells appear in order: current quarter first, then prior quarter
+                    print(f"\nFound {len(nav_cells)} NAV cells")
+                    for i, (label_text, value_cell) in enumerate(nav_cells):
+                        print(f"NAV cell {i}: '{label_text}'")
 
-                        # If neither EUR nor USD is explicitly mentioned, assume first occurrence is EUR
-                        if not is_eur and not is_usd:
-                            nav_index = nav_cells.index((label_text, value_cell))
-                            is_eur = nav_index % 2 == 0  # Even indices are EUR
-                            is_usd = nav_index % 2 == 1  # Odd indices are USD
+                        # Try to determine if current or prior based on position or label
+                        # Check if label contains current/prior quarter indicators
+                        is_current = i == 0  # First NAV cell is current quarter
 
-                        # Try to determine if current or prior quarter
-                        # Check for quarter indicators in the label
-                        nav_index = nav_cells.index((label_text, value_cell))
-
-                        # First try specific quarter matching (Q4, Q3, Q2, Q1, etc.)
-                        # Extract quarter number if present
+                        # Try to match quarter patterns (e.g., Q4, Q3) to determine which is more recent
                         quarter_match = re.search(r'q(\d)', label_text)
+                        if quarter_match:
+                            quarter_num = int(quarter_match.group(1))
+                            # If we find quarter indicators, compare them
+                            # This is a simple heuristic - adjust based on your template structure
 
-                        # Determine if this is current or prior based on position and quarter
-                        # Assume NAV cells appear in order: most recent first
-                        is_current = nav_index < len(nav_cells) / 2
-
-                        # Update the cell based on currency and position
-                        if is_current:
-                            if is_eur and current_nav_eur:
-                                self.set_cell_text(value_cell, current_nav_eur)
-                                print(f"Updated current NAV EUR: {current_nav_eur}")
-                            elif is_usd and current_nav_usd:
-                                self.set_cell_text(value_cell, current_nav_usd)
-                                print(f"Updated current NAV USD: {current_nav_usd}")
-                        else:
-                            if is_eur and prior_nav_eur:
-                                self.set_cell_text(value_cell, prior_nav_eur)
-                                print(f"Updated prior NAV EUR: {prior_nav_eur}")
-                            elif is_usd and prior_nav_usd:
-                                self.set_cell_text(value_cell, prior_nav_usd)
-                                print(f"Updated prior NAV USD: {prior_nav_usd}")
+                        # Update the cell based on position
+                        if is_current and current_nav:
+                            self.set_cell_text(value_cell, current_nav)
+                            print(f"  ✓ Updated current quarter NAV: {current_nav}")
+                        elif not is_current and prior_nav:
+                            self.set_cell_text(value_cell, prior_nav)
+                            print(f"  ✓ Updated prior quarter NAV: {prior_nav}")
 
                     return True
 

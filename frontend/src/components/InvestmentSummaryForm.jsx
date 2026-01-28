@@ -21,58 +21,60 @@ export default function InvestmentSummaryForm({ data, onChange, disabled }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-bold uppercase tracking-wider mb-2">
-              Current Quarter NAV (EUR)
+              Current Quarter NAV
             </label>
-            <input
-              type="text"
-              value={data.currentQuarterNAV || ''}
-              onChange={(e) => handleChange('currentQuarterNAV', e.target.value)}
-              disabled={disabled}
-              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
-              placeholder="e.g., €19.0m"
-            />
+            <div className="flex gap-2">
+              <select
+                value={data.currentQuarterNAVCurrency || 'EUR'}
+                onChange={(e) => handleChange('currentQuarterNAVCurrency', e.target.value)}
+                disabled={disabled}
+                className="w-24 px-3 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              >
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+                <option value="GBP">GBP</option>
+                <option value="NOK">NOK</option>
+                <option value="CHF">CHF</option>
+                <option value="SEK">SEK</option>
+              </select>
+              <input
+                type="text"
+                value={data.currentQuarterNAV || ''}
+                onChange={(e) => handleChange('currentQuarterNAV', e.target.value)}
+                disabled={disabled}
+                className="flex-1 px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+                placeholder="e.g., 19.0m"
+              />
+            </div>
           </div>
 
           <div>
             <label className="block text-sm font-bold uppercase tracking-wider mb-2">
-              Current Quarter NAV (USD)
+              Prior Quarter NAV
             </label>
-            <input
-              type="text"
-              value={data.currentQuarterNAVUSD || ''}
-              onChange={(e) => handleChange('currentQuarterNAVUSD', e.target.value)}
-              disabled={disabled}
-              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
-              placeholder="e.g., $21.9m"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
-              Prior Quarter NAV (EUR)
-            </label>
-            <input
-              type="text"
-              value={data.priorQuarterNAV || ''}
-              onChange={(e) => handleChange('priorQuarterNAV', e.target.value)}
-              disabled={disabled}
-              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
-              placeholder="e.g., €19.0m"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
-              Prior Quarter NAV (USD)
-            </label>
-            <input
-              type="text"
-              value={data.priorQuarterNAVUSD || ''}
-              onChange={(e) => handleChange('priorQuarterNAVUSD', e.target.value)}
-              disabled={disabled}
-              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
-              placeholder="e.g., $22.3m"
-            />
+            <div className="flex gap-2">
+              <select
+                value={data.priorQuarterNAVCurrency || 'EUR'}
+                onChange={(e) => handleChange('priorQuarterNAVCurrency', e.target.value)}
+                disabled={disabled}
+                className="w-24 px-3 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              >
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+                <option value="GBP">GBP</option>
+                <option value="NOK">NOK</option>
+                <option value="CHF">CHF</option>
+                <option value="SEK">SEK</option>
+              </select>
+              <input
+                type="text"
+                value={data.priorQuarterNAV || ''}
+                onChange={(e) => handleChange('priorQuarterNAV', e.target.value)}
+                disabled={disabled}
+                className="flex-1 px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+                placeholder="e.g., 19.0m"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -81,36 +83,35 @@ export default function InvestmentSummaryForm({ data, onChange, disabled }) {
       <div className="bg-[#374A5E] rounded-lg p-6 border border-gray-600">
         <h3 className="text-lg font-bold mb-4 text-[#FF5722]">Investment Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* ERVE investment amount in EUR */}
-          <div>
+          {/* ERVE investment amount */}
+          <div className="md:col-span-2">
             <label className="block text-sm font-bold uppercase tracking-wider mb-2">
-              ERVE Investment (EUR)
+              ERVE Investment
             </label>
-            <input
-              type="number"
-              step="0.01"
-              value={data.erveInvestmentEUR || ''}
-              onChange={(e) => handleChange('erveInvestmentEUR', e.target.value)}
-              disabled={disabled}
-              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
-              placeholder="e.g., 12000000"
-            />
-          </div>
-
-          {/* USD equivalent */}
-          <div>
-            <label className="block text-sm font-bold uppercase tracking-wider mb-2">
-              ERVE Investment (USD Equivalent)
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={data.erveInvestmentUSD || ''}
-              onChange={(e) => handleChange('erveInvestmentUSD', e.target.value)}
-              disabled={disabled}
-              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
-              placeholder="e.g., 13000000"
-            />
+            <div className="flex gap-2">
+              <select
+                value={data.erveInvestmentCurrency || 'EUR'}
+                onChange={(e) => handleChange('erveInvestmentCurrency', e.target.value)}
+                disabled={disabled}
+                className="w-24 px-3 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              >
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+                <option value="GBP">GBP</option>
+                <option value="NOK">NOK</option>
+                <option value="CHF">CHF</option>
+                <option value="SEK">SEK</option>
+              </select>
+              <input
+                type="number"
+                step="0.01"
+                value={data.erveInvestment || ''}
+                onChange={(e) => handleChange('erveInvestment', e.target.value)}
+                disabled={disabled}
+                className="flex-1 px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+                placeholder="e.g., 12 (in millions)"
+              />
+            </div>
           </div>
 
           {/* Investment round and date */}
@@ -118,14 +119,29 @@ export default function InvestmentSummaryForm({ data, onChange, disabled }) {
             <label className="block text-sm font-bold uppercase tracking-wider mb-2">
               Investment Round & Date
             </label>
-            <input
-              type="text"
-              value={data.investmentRound || ''}
-              onChange={(e) => handleChange('investmentRound', e.target.value)}
-              disabled={disabled}
-              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
-              placeholder="e.g., Jul-24 – Series B: €19.0m"
-            />
+            <div className="flex gap-2">
+              <select
+                value={data.investmentRoundCurrency || 'EUR'}
+                onChange={(e) => handleChange('investmentRoundCurrency', e.target.value)}
+                disabled={disabled}
+                className="w-24 px-3 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              >
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+                <option value="GBP">GBP</option>
+                <option value="NOK">NOK</option>
+                <option value="CHF">CHF</option>
+                <option value="SEK">SEK</option>
+              </select>
+              <input
+                type="text"
+                value={data.investmentRound || ''}
+                onChange={(e) => handleChange('investmentRound', e.target.value)}
+                disabled={disabled}
+                className="flex-1 px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+                placeholder="e.g., Jul-24 – Series B: 19.0m"
+              />
+            </div>
           </div>
 
           {/* Total raised */}
@@ -133,14 +149,29 @@ export default function InvestmentSummaryForm({ data, onChange, disabled }) {
             <label className="block text-sm font-bold uppercase tracking-wider mb-2">
               Total Raised
             </label>
-            <input
-              type="text"
-              value={data.totalRaised || ''}
-              onChange={(e) => handleChange('totalRaised', e.target.value)}
-              disabled={disabled}
-              className="w-full px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
-              placeholder="e.g., €42.0m Primary, €5.0m Secondary"
-            />
+            <div className="flex gap-2">
+              <select
+                value={data.totalRaisedCurrency || 'EUR'}
+                onChange={(e) => handleChange('totalRaisedCurrency', e.target.value)}
+                disabled={disabled}
+                className="w-24 px-3 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+              >
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+                <option value="GBP">GBP</option>
+                <option value="NOK">NOK</option>
+                <option value="CHF">CHF</option>
+                <option value="SEK">SEK</option>
+              </select>
+              <input
+                type="text"
+                value={data.totalRaised || ''}
+                onChange={(e) => handleChange('totalRaised', e.target.value)}
+                disabled={disabled}
+                className="flex-1 px-4 py-2 bg-[#2C3E50] border border-gray-600 rounded text-white focus:border-[#FF5722] focus:outline-none disabled:opacity-50"
+                placeholder="e.g., 42.0m Primary, 5.0m Secondary"
+              />
+            </div>
           </div>
 
           {/* ERVE % ownership */}

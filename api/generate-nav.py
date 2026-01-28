@@ -115,6 +115,16 @@ class handler(BaseHTTPRequestHandler):
                 if found_investment_header and shape.has_table:
                     table = shape.table
 
+                    # Build governance string based on what's available
+                    board_member = investment_summary.get('boardMember', '')
+                    board_observer = investment_summary.get('boardObserver', '')
+                    governance_parts = []
+                    if board_member:
+                        governance_parts.append(f"Board Member: {board_member}")
+                    if board_observer:
+                        governance_parts.append(f"Observer: {board_observer}")
+                    governance_value = ', '.join(governance_parts) if governance_parts else ''
+
                     # Map field labels to values
                     field_map = {
                         'erve investment': investment_summary.get('erveInvestmentEUR', ''),
@@ -124,7 +134,7 @@ class handler(BaseHTTPRequestHandler):
                         'erve %': investment_summary.get('erveOwnership', ''),
                         'security': investment_summary.get('securityType', ''),
                         'other shareholders': investment_summary.get('otherShareholders', ''),
-                        'governance': f"Board Member: {investment_summary.get('boardMember', '')}, Observer: {investment_summary.get('boardObserver', '')}",
+                        'governance': governance_value,
                         'cash': investment_summary.get('cash', ''),
                         'monthly burn': investment_summary.get('monthlyBurn', ''),
                         'fume': investment_summary.get('fume', ''),

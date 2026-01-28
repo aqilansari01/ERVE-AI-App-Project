@@ -124,10 +124,12 @@ export default function FileUpload({ files, onFilesChange, disabled }) {
 
         <FileUploadBox
           title="Financials"
-          description="Financials document (PDF)"
+          description="Financials document (Word/PDF)"
           file={files.financials}
           onDrop={handleFileDrop('financials')}
           accept={{
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+            'application/msword': ['.doc'],
             'application/pdf': ['.pdf'],
           }}
           disabled={disabled}

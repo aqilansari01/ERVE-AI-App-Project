@@ -70,6 +70,16 @@ export const processNAVDocuments = async (
     progressCallback('Extracting quarterly financials table...', 60)
     const quarterlyFinancials = await extractQuarterlyFinancials(financialsContent)
 
+    // Diagnostic: Show what was extracted
+    const periodsFound = Object.keys(quarterlyFinancials || {})
+    if (periodsFound.length === 0) {
+      alert('⚠️ DIAGNOSTIC: No quarterly financials data was extracted!\n\nThe AI could not parse the financials table from your PDF.\n\nPossible solutions:\n1. Try uploading a Word document (.docx) instead\n2. Make sure the PDF contains readable text (not a scanned image)\n3. Check that the PDF has a clear table with periods like Dec-24, Mar-25, etc.')
+    } else {
+      const samplePeriod = periodsFound[0]
+      const sampleData = quarterlyFinancials[samplePeriod]
+      alert(`✓ DIAGNOSTIC: Successfully extracted financials data!\n\nPeriods found: ${periodsFound.join(', ')}\n\nSample data from ${samplePeriod}:\nARR: ${sampleData.ARR}\nRevenue: ${sampleData.Revenue}\nGM: ${sampleData.GM}\nEBITDA: ${sampleData.EBITDA}\nFTEs: ${sampleData.FTEs}`)
+    }
+
     progressCallback('Extracting company update commentary...', 70)
     const companyUpdate = await extractCompanyUpdate(
       boardNotesContent,

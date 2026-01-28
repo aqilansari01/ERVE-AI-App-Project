@@ -373,21 +373,30 @@ class handler(BaseHTTPRequestHandler):
             print("No quarterly financials data provided")
             return False
 
-        print(f"Quarterly financials data received: {quarterly_financials}")
+        print(f"Quarterly financials data received: {list(quarterly_financials.keys())}")
 
         try:
             # Find the table with "Quarterly Actuals" or metric names
+            tables_checked = 0
             for shape in slide.shapes:
                 if shape.has_table:
+                    tables_checked += 1
                     table = shape.table
+                    print(f"\nChecking table #{tables_checked}")
 
-                    # Check if any cell contains "YF 31st Dec" or "Quarterly Actuals"
+                    # Check if any cell contains quarterly actuals indicators
                     is_financials_table = False
+
+                    # Look for common financial table indicators (more flexible)
                     for row in table.rows:
                         for cell in row.cells:
                             cell_text = cell.text.strip().lower()
-                            if 'yf 31st dec' in cell_text or 'quarterly actual' in cell_text:
-                                print(f"Found financials table with text: {cell_text}")
+                            # Check for various quarter indicators
+                            if any(indicator in cell_text for indicator in [
+                                'quarterly actual', 'yf 31st', 'ye 31st', 'dec-', 'mar-', 'jun-', 'sep-',
+                                'q1', 'q2', 'q3', 'q4', 'fy', 'ltm'
+                            ]):
+                                print(f"  Found financial table indicator: '{cell_text}'")
                                 is_financials_table = True
                                 break
                         if is_financials_table:
@@ -397,31 +406,50 @@ class handler(BaseHTTPRequestHandler):
                         # Also check for metric names in first column
                         for row in table.rows:
                             first_cell = row.cells[0].text.strip().upper()
-                            if first_cell in ['ARR', 'REVENUE', 'GM', 'EBITDA', 'FTES']:
-                                print(f"Found financials table with metric: {first_cell}")
+                            if first_cell in ['ARR', 'REVENUE', 'GM', 'EBITDA', 'FTES', 'EBIT']:
+                                print(f"  Found financial table with metric: {first_cell}")
                                 is_financials_table = True
                                 break
 
                     if not is_financials_table:
+                        print(f"  Table #{tables_checked} is not the financials table")
                         continue
+
+                    print(f"  ✓ This is the financials table!")
 
                     # This is the financials table - find period columns
                     header_row = table.rows[0]
                     period_columns = {}
 
-                    print("Header row cells:", [cell.text.strip() for cell in header_row.cells])
-                    print("Available periods in data:", list(quarterly_financials.keys()))
+                    print("  Header row cells:", [cell.text.strip() for cell in header_row.cells])
+                    print("  Available periods in data:", list(quarterly_financials.keys()))
 
+                    # Try exact matching first
                     for col_idx, cell in enumerate(header_row.cells):
                         cell_text = cell.text.strip()
                         for period in quarterly_financials.keys():
-                            if period in cell_text:
+                            if period.lower() in cell_text.lower() or cell_text.lower() in period.lower():
                                 period_columns[col_idx] = period
-                                print(f"Matched column {col_idx} ({cell_text}) to period {period}")
+                                print(f"  Matched column {col_idx} ('{cell_text}') to period '{period}'")
                                 break
 
                     if not period_columns:
-                        print("WARNING: No period columns matched!")
+                        print("  WARNING: No period columns matched!")
+                        print("  Trying case-insensitive partial matching...")
+
+                        # Try more flexible matching
+                        for col_idx, cell in enumerate(header_row.cells):
+                            cell_text = cell.text.strip().lower()
+                            for period in quarterly_financials.keys():
+                                period_lower = period.lower()
+                                # Check if any part of the period matches
+                                if any(part in cell_text for part in period_lower.split('-')):
+                                    period_columns[col_idx] = period
+                                    print(f"  Matched column {col_idx} ('{cell_text}') to period '{period}' (partial)")
+                                    break
+
+                    if not period_columns:
+                        print("  ERROR: Still no period columns matched after flexible matching!")
                         return False
 
                     # Update data rows
@@ -430,7 +458,9 @@ class handler(BaseHTTPRequestHandler):
                         'REVENUE': 'Revenue',
                         'GM': 'GM',
                         'EBITDA': 'EBITDA',
-                        'FTES': 'FTEs'
+                        'EBIT': 'EBITDA',  # Sometimes called EBIT
+                        'FTES': 'FTEs',
+                        'FTE': 'FTEs'
                     }
 
                     updates_made = 0
@@ -439,20 +469,22 @@ class handler(BaseHTTPRequestHandler):
 
                         if first_cell in metrics_map:
                             metric_name = metrics_map[first_cell]
-                            print(f"Processing metric: {metric_name}")
+                            print(f"  Processing metric row: {first_cell} -> {metric_name}")
 
                             for col_idx, period in period_columns.items():
                                 if col_idx < len(row.cells):
                                     value = quarterly_financials[period].get(metric_name)
                                     if value is not None:
                                         self.set_cell_text(row.cells[col_idx], str(value))
-                                        print(f"  Updated {metric_name} for {period}: {value}")
+                                        print(f"    ✓ Updated {metric_name} for {period}: {value}")
                                         updates_made += 1
+                                    else:
+                                        print(f"    ✗ No value for {metric_name} in {period}")
 
-                    print(f"Total cell updates in quarterly financials: {updates_made}")
+                    print(f"  Total cell updates in quarterly financials: {updates_made}")
                     return updates_made > 0
 
-            print("No financials table found")
+            print(f"No financials table found after checking {tables_checked} tables")
             return False
 
         except Exception as e:
@@ -461,58 +493,81 @@ class handler(BaseHTTPRequestHandler):
             return False
 
     def update_company_update(self, slide, company_update):
-        """Update the company update text box in the gray box"""
+        """Update the company update text box"""
         if not company_update:
-            print("No company update data provided")
+            print("No company update data provided (empty string)")
             return False
 
         print(f"Company update data received (length: {len(company_update)} chars)")
+        print(f"Company update preview: {company_update[:200]}")
 
         try:
-            # Find text boxes in gray boxes (usually have gray fill)
+            # Find text boxes - look for "company update" text or top-right positioned text boxes
             shapes_checked = 0
+            candidate_shapes = []
+
             for shape in slide.shapes:
                 if shape.has_text_frame:
                     shapes_checked += 1
                     text_lower = shape.text.lower()
 
+                    print(f"  Shape #{shapes_checked}: pos=({shape.left}, {shape.top}), text preview: '{shape.text[:50]}'")
+
                     # Look for "company update" text
-                    if 'company update' in text_lower:
-                        print(f"Found 'company update' text box (shape type: {shape.shape_type})")
-                        text_frame = shape.text_frame
+                    if 'company update' in text_lower or 'company' in text_lower:
+                        candidate_shapes.append((shape, 'text_match'))
+                        print(f"    -> Candidate: Found 'company' text")
+                    # Also look for shapes in the top-right area (position-based)
+                    elif shape.left > Inches(4) and shape.top < Inches(3):
+                        candidate_shapes.append((shape, 'position_match'))
+                        print(f"    -> Candidate: Top-right position")
 
-                        # Clear existing text - safer approach
-                        # Clear text from all existing paragraphs
-                        for paragraph in text_frame.paragraphs:
-                            paragraph.clear()
+            print(f"\nFound {len(candidate_shapes)} candidate shapes for company update")
 
-                        # Use first paragraph for header
-                        if len(text_frame.paragraphs) > 0:
-                            p1 = text_frame.paragraphs[0]
-                        else:
-                            p1 = text_frame.add_paragraph()
+            # Prefer text matches over position matches
+            for shape, match_type in sorted(candidate_shapes, key=lambda x: 0 if x[1] == 'text_match' else 1):
+                print(f"Attempting to update shape (match type: {match_type})")
+                text_frame = shape.text_frame
 
-                        p1.text = "Company update"
-                        # Set font on runs, not paragraph
-                        for run in p1.runs:
-                            run.font.name = 'Arial'
-                            run.font.bold = True
-                            run.font.size = Pt(8)
+                # Clear existing text
+                for paragraph in text_frame.paragraphs:
+                    paragraph.clear()
 
-                        # Add content in second paragraph
-                        clean_update = company_update.replace('## Company Update', '').replace('## Company update', '').strip()
-                        p2 = text_frame.add_paragraph()
-                        p2.text = clean_update
-                        p2.space_before = Pt(6)
-                        # Set font on runs
-                        for run in p2.runs:
-                            run.font.name = 'Arial'
-                            run.font.size = Pt(7)
+                # Use first paragraph for header
+                if len(text_frame.paragraphs) > 0:
+                    p1 = text_frame.paragraphs[0]
+                else:
+                    p1 = text_frame.add_paragraph()
 
-                        print(f"Successfully updated company update section")
-                        return True
+                p1.text = "Company update"
+                # Set font on runs
+                if p1.runs:
+                    for run in p1.runs:
+                        run.font.name = 'Arial'
+                        run.font.bold = True
+                        run.font.size = Pt(8)
 
-            print(f"Checked {shapes_checked} shapes with text frames, but 'company update' not found")
+                # Add content in second paragraph
+                clean_update = company_update.replace('## Company Update', '').replace('## Company update', '').replace('##', '').strip()
+                p2 = text_frame.add_paragraph()
+                p2.text = clean_update
+                p2.space_before = Pt(6)
+                # Set font on runs
+                if p2.runs:
+                    for run in p2.runs:
+                        run.font.name = 'Arial'
+                        run.font.size = Pt(7)
+
+                print(f"✓ Successfully updated company update section")
+                return True
+
+            print(f"✗ Checked {shapes_checked} shapes but found no suitable text box for company update")
+            print(f"  Hint: Make sure your template has a text box labeled 'Company update' or positioned in the top-right area")
+            return False
+
+        except Exception as e:
+            print(f"Error updating company update: {e}")
+            traceback.print_exc()
             return False
 
         except Exception as e:

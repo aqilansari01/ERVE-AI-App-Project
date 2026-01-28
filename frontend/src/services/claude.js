@@ -120,26 +120,39 @@ export const extractTextFromPDF = async (base64Content) => {
 }
 
 export const extractQuarterlyFinancials = async (financialsContent) => {
-  const systemPrompt = `You are a financial data extraction specialist. Your task is to extract quarterly financial metrics from financial documents.`
+  const systemPrompt = `You are a financial data extraction specialist. Your task is to extract quarterly financial metrics from financial documents and return them as valid JSON.`
 
-  const userPrompt = `From the following financials document, extract the quarterly financials table data. I need:
+  const userPrompt = `From the following financials document, extract the quarterly financials table data.
 
-- ARR (Annual Recurring Revenue) for each period
-- Revenue for each period
-- GM (Gross Margin) for each period
-- EBITDA for each period
-- FTEs (Full-Time Employees) for each period
+IMPORTANT: Return ONLY valid JSON, no markdown formatting, no backticks, no explanations.
+
+Extract these metrics for each period:
+- ARR (Annual Recurring Revenue)
+- Revenue
+- GM (Gross Margin)
+- EBITDA
+- FTEs (Full-Time Employees)
+
+The periods in the document are labeled like: Dec-24, Mar-25, Jun-25, Sep-25, LTM, FY23, FY24, FY25
+
+Return the data as a JSON object with period names EXACTLY as they appear in the document as keys, and metrics as nested objects. Include all periods found. Use null for missing values.
 
 Document content:
 ${financialsContent}
 
-Please return the data as a structured JSON object with periods as keys (e.g., "Dec-24", "Mar-25", "Jun-25", "Sep-25", "FY23", "FY24", "FY25", "LTM") and metrics as nested objects. Use null for missing values.
-
-Example format:
+Example output format (use the ACTUAL periods and values from the document):
 {
-  "Dec-24": { "ARR": 10.5, "Revenue": 2.5, "GM": 70, "EBITDA": -0.5, "FTEs": 50 },
-  "Mar-25": { "ARR": 12.0, "Revenue": 3.0, "GM": 72, "EBITDA": -0.3, "FTEs": 55 }
-}`
+  "Dec-24": { "ARR": 9.1, "Revenue": 2.2, "GM": 2.0, "EBITDA": -2.1, "FTEs": 154 },
+  "Mar-25": { "ARR": 10.6, "Revenue": 2.6, "GM": 2.4, "EBITDA": -2.4, "FTEs": 170 },
+  "Jun-25": { "ARR": 11.8, "Revenue": 3.3, "GM": 3.0, "EBITDA": -2.8, "FTEs": 190 },
+  "Sep-25": { "ARR": 13.1, "Revenue": 3.3, "GM": 2.9, "EBITDA": -2.5, "FTEs": 207 },
+  "LTM": { "ARR": 13.1, "Revenue": 11.4, "GM": 10.3, "EBITDA": -9.9, "FTEs": 207 },
+  "FY23": { "ARR": 4.9, "Revenue": 4.1, "GM": 3.7, "EBITDA": -2.7, "FTEs": 87 },
+  "FY24": { "ARR": 9.1, "Revenue": 7.3, "GM": 6.6, "EBITDA": -5.9, "FTEs": 154 },
+  "FY25": { "ARR": 15.8, "Revenue": 13.2, "GM": 11.7, "EBITDA": -10.6, "FTEs": 223 }
+}
+
+Return ONLY the JSON object, nothing else.`
 
   const message = await client.messages.create({
     model: 'claude-sonnet-4-5-20250929',
@@ -154,9 +167,20 @@ Example format:
   })
 
   try {
-    return JSON.parse(message.content[0].text)
+    const responseText = message.content[0].text.trim()
+
+    // Remove markdown code blocks if present
+    let jsonText = responseText
+    if (responseText.startsWith('```')) {
+      jsonText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    }
+
+    const parsedData = JSON.parse(jsonText)
+    console.log('Extracted quarterly financials:', parsedData)
+    return parsedData
   } catch (error) {
     console.error('Error parsing quarterly financials:', error)
+    console.error('Raw response:', message.content[0].text)
     return {}
   }
 }

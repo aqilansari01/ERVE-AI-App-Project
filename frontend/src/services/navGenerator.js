@@ -39,10 +39,26 @@ export const generatePowerPointDocument = async ({
     diagnosticInfo.push(`- FUME: ${investmentSummary.fume || 'NOT SET'}`)
     diagnosticInfo.push(`- Pre-Money Valuation: ${investmentSummary.preMoneyValuation || 'NOT SET'}`)
     diagnosticInfo.push(`- Post-Money Valuation: ${investmentSummary.postMoneyValuation || 'NOT SET'}`)
-    diagnosticInfo.push(`- Quarterly Financials periods: ${Object.keys(quarterlyFinancials).join(', ') || 'NONE'}`)
+
+    // Detailed quarterly financials diagnostic
+    const qfPeriods = Object.keys(quarterlyFinancials)
+    if (qfPeriods.length > 0) {
+      diagnosticInfo.push(`- Quarterly Financials: ${qfPeriods.length} periods found`)
+      diagnosticInfo.push(`  Periods: ${qfPeriods.join(', ')}`)
+      // Show a sample period's data
+      const samplePeriod = qfPeriods[0]
+      const sampleData = quarterlyFinancials[samplePeriod]
+      diagnosticInfo.push(`  Sample (${samplePeriod}): ARR=${sampleData.ARR}, Revenue=${sampleData.Revenue}, FTEs=${sampleData.FTEs}`)
+    } else {
+      diagnosticInfo.push(`- Quarterly Financials: NONE EXTRACTED (AI failed to extract data from PDF)`)
+    }
+
     diagnosticInfo.push(`- Company Update: ${companyUpdate ? companyUpdate.substring(0, 100) + '...' : 'NOT SET'}`)
 
     console.log(diagnosticInfo.join('\n'))
+
+    // Show diagnostic info in alert before sending (optional - comment out if too many alerts)
+    // alert('Debug - Data Extracted:\n\n' + diagnosticInfo.join('\n'))
 
     // Call Python API
     const response = await fetch('/api/generate-nav', {

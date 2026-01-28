@@ -351,17 +351,22 @@ class handler(BaseHTTPRequestHandler):
                     if 'company update' in text_lower:
                         text_frame = shape.text_frame
 
-                        # Clear all paragraphs
-                        for p in list(text_frame.paragraphs):
-                            p._element.getparent().remove(p._element)
+                        # Clear existing text - safer approach
+                        # Clear text from all existing paragraphs
+                        for paragraph in text_frame.paragraphs:
+                            paragraph.clear()
 
-                        # Add header
-                        p1 = text_frame.paragraphs[0] if len(text_frame.paragraphs) > 0 else text_frame.add_paragraph()
+                        # Use first paragraph for header
+                        if len(text_frame.paragraphs) > 0:
+                            p1 = text_frame.paragraphs[0]
+                        else:
+                            p1 = text_frame.add_paragraph()
+
                         p1.text = "Company update"
                         p1.font.bold = True
                         p1.font.size = Pt(8)
 
-                        # Add content
+                        # Add content in second paragraph
                         clean_update = company_update.replace('## Company Update', '').replace('## Company update', '').strip()
                         p2 = text_frame.add_paragraph()
                         p2.text = clean_update

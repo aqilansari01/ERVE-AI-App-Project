@@ -1,8 +1,4 @@
 export const ACCEPTED_FILE_TYPES = {
-  template: {
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-    'application/msword': ['.doc'],
-  },
   priorNav: {
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
     'application/msword': ['.doc'],

@@ -1,6 +1,5 @@
 import { uploadFile } from './supabase'
-import { analyzeDocument, synthesizeNAVDocument, extractTextFromPDF } from './claude'
-import { generateWordDocument } from './navGenerator'
+import { analyzeDocument, extractQuarterlyFinancials, generateCompanyUpdate, extractTextFromPDF } from './claude'
 import {
   parseWordDocument,
   parseExcelDocument,
@@ -28,13 +27,21 @@ const extractDocumentContent = async (file, progressCallback) => {
 
 export const processNAVDocuments = async (files, progressCallback) => {
   try {
+    const result = {
+      quarterlyFinancials: null,
+      companyUpdateCommentary: null,
+    }
+
+    const hasFiles = files.priorNav || files.boardNotes || files.financials
+    if (!hasFiles) {
+      return result
+    }
+
     progressCallback('Starting document processing...', 5)
 
+    // Upload available files to storage
     const timestamp = Date.now()
     const uploadPromises = []
-
-    progressCallback('Uploading documents to storage...', 10)
-
     Object.entries(files).forEach(([key, file]) => {
       if (file) {
         const path = `${timestamp}/${key}-${file.name}`
@@ -42,70 +49,83 @@ export const processNAVDocuments = async (files, progressCallback) => {
       }
     })
 
+    progressCallback('Uploading documents to storage...', 10)
     await Promise.all(uploadPromises)
 
-    progressCallback('Extracting content from template...', 20)
-    const templateContent = await extractDocumentContent(
-      files.template,
-      progressCallback
-    )
+    // Extract content from available documents
+    let priorNavContent = null
+    let boardNotesContent = null
+    let financialsContent = null
 
-    progressCallback('Extracting content from prior quarter NAV...', 30)
-    const priorNavContent = await extractDocumentContent(
-      files.priorNav,
-      progressCallback
-    )
+    if (files.priorNav) {
+      progressCallback('Extracting content from prior quarter NAV...', 20)
+      priorNavContent = await extractDocumentContent(files.priorNav, progressCallback)
+    }
 
-    progressCallback('Extracting content from board notes...', 45)
-    const boardNotesContent = await extractDocumentContent(
-      files.boardNotes,
-      progressCallback
-    )
+    if (files.boardNotes) {
+      progressCallback('Extracting content from board notes...', 35)
+      boardNotesContent = await extractDocumentContent(files.boardNotes, progressCallback)
+    }
 
-    progressCallback('Extracting content from financials...', 55)
-    const financialsContent = await extractDocumentContent(
-      files.financials,
-      progressCallback
-    )
+    if (files.financials) {
+      progressCallback('Extracting content from financials...', 50)
+      financialsContent = await extractDocumentContent(files.financials, progressCallback)
+    }
 
-    progressCallback('Analyzing prior quarter NAV...', 60)
-    const priorNavAnalysis = await analyzeDocument(
-      priorNavContent,
-      'Prior Quarter NAV',
-      'Extract key metrics, equity stakes, and any items that should be carried forward to the next quarter.'
-    )
+    // AI Analysis
+    let priorNavAnalysis = null
+    let boardNotesAnalysis = null
+    let financialsAnalysis = null
 
-    progressCallback('Analyzing board notes...', 70)
-    const boardNotesAnalysis = await analyzeDocument(
-      boardNotesContent,
-      'Board Notes',
-      'Extract key commentary, insights, and narrative points for the NAV 1-pager commentary section.'
-    )
+    if (priorNavContent) {
+      progressCallback('Analyzing prior quarter NAV...', 60)
+      priorNavAnalysis = await analyzeDocument(
+        priorNavContent,
+        'Prior Quarter NAV',
+        'Extract key metrics, equity stakes, and any items that should be carried forward to the next quarter.'
+      )
+    }
 
-    progressCallback('Analyzing financials...', 75)
-    const financialsAnalysis = await analyzeDocument(
-      financialsContent,
-      'Financials',
-      'Extract all financial metrics, performance indicators, and quantitative data that should be included in the NAV 1-pager.'
-    )
+    if (boardNotesContent) {
+      progressCallback('Analyzing board notes...', 70)
+      boardNotesAnalysis = await analyzeDocument(
+        boardNotesContent,
+        'Board Notes',
+        'Extract key commentary, insights, and narrative points for the NAV 1-pager commentary section.'
+      )
+    }
 
-    progressCallback('Synthesizing NAV 1-pager...', 85)
-    const synthesizedContent = await synthesizeNAVDocument(
-      templateContent,
-      priorNavAnalysis,
-      boardNotesAnalysis,
-      financialsAnalysis
-    )
+    if (financialsContent) {
+      progressCallback('Analyzing financials...', 75)
+      financialsAnalysis = await analyzeDocument(
+        financialsContent,
+        'Financials',
+        'Extract all financial metrics, performance indicators, and quantitative data.'
+      )
+    }
 
-    progressCallback('Generating Word document...', 95)
-    const wordDocument = await generateWordDocument(
-      synthesizedContent,
-      templateContent
-    )
+    // Extract structured quarterly financials
+    if (financialsAnalysis) {
+      progressCallback('Extracting quarterly financials table...', 82)
+      try {
+        result.quarterlyFinancials = await extractQuarterlyFinancials(financialsAnalysis)
+      } catch (err) {
+        console.warn('Failed to extract structured financials:', err)
+      }
+    }
 
-    progressCallback('NAV 1-pager generated successfully!', 100)
+    // Generate company update commentary
+    if (boardNotesAnalysis || financialsAnalysis || priorNavAnalysis) {
+      progressCallback('Generating company update commentary...', 90)
+      result.companyUpdateCommentary = await generateCompanyUpdate(
+        boardNotesAnalysis,
+        financialsAnalysis,
+        priorNavAnalysis
+      )
+    }
 
-    return wordDocument
+    progressCallback('AI processing complete!', 100)
+    return result
   } catch (error) {
     console.error('Error processing NAV documents:', error)
     throw new Error(

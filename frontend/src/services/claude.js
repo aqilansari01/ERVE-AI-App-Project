@@ -37,43 +37,71 @@ Please extract and structure the key information in a clear, organized format.`
   return message.content[0].text
 }
 
-export const synthesizeNAVDocument = async (
-  templateContent,
-  priorNavAnalysis,
-  boardNotesAnalysis,
-  financialsAnalysis
-) => {
-  const systemPrompt = `You are an expert financial document generator for venture capital firms.
-Your task is to synthesize information from multiple sources to create a complete NAV 1-pager.
-Maintain professional formatting and ensure all financial data is accurate.`
+export const extractQuarterlyFinancials = async (financialsContent) => {
+  const systemPrompt = `You are an expert financial data extractor. Extract quarterly financial metrics and return them as structured JSON.`
 
-  const userPrompt = `Generate a complete NAV 1-pager using the following information:
+  const userPrompt = `Extract quarterly financial data from this document and return ONLY valid JSON (no markdown, no explanation).
 
-TEMPLATE STRUCTURE:
-${templateContent}
+Document content:
+${financialsContent}
 
-PRIOR QUARTER NAV (for carrying forward unchanged items):
-${priorNavAnalysis}
+Return this exact JSON structure, filling in values found in the document. Use empty strings for missing values:
+{
+  "columns": ["Dec-24", "Mar-25", "Jun-25", "Sep-25", "LTM", "FY23 Actual", "FY24 Actual", "FY25 Budget"],
+  "rows": [
+    { "metric": "ARR", "values": ["", "", "", "", "", "", "", ""] },
+    { "metric": "Revenue", "values": ["", "", "", "", "", "", "", ""] },
+    { "metric": "GM", "values": ["", "", "", "", "", "", "", ""] },
+    { "metric": "EBITDA", "values": ["", "", "", "", "", "", "", ""] },
+    { "metric": "FTEs", "values": ["", "", "", "", "", "", "", ""] }
+  ]
+}
 
-BOARD NOTES (for commentary section):
-${boardNotesAnalysis}
-
-FINANCIALS (for updating financial metrics):
-${financialsAnalysis}
-
-Instructions:
-1. Use the template structure as the base format
-2. Update financial metrics using data from the financials document
-3. Carry forward unchanged items (like equity stake %) from the prior quarter's NAV
-4. Populate the commentary section using insights from the board notes
-5. Ensure consistency in formatting and terminology
-6. Maintain professional tone and clarity
-
-Generate the complete NAV 1-pager content now, maintaining the original template's structure and formatting.`
+Map the document's time periods to the closest matching columns. Return ONLY the JSON object.`
 
   const message = await client.messages.create({
     model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 8192,
+    max_tokens: 4096,
+    system: systemPrompt,
+    messages: [
+      {
+        role: 'user',
+        content: userPrompt,
+      },
+    ],
+  })
+
+  const text = message.content[0].text.trim()
+  const jsonMatch = text.match(/\{[\s\S]*\}/)
+  if (!jsonMatch) {
+    throw new Error('Failed to extract structured financial data')
+  }
+  return JSON.parse(jsonMatch[0])
+}
+
+export const generateCompanyUpdate = async (boardNotesAnalysis, financialsAnalysis, priorNavAnalysis) => {
+  const systemPrompt = `You are an expert venture capital analyst writing concise company updates for NAV 1-pagers.
+Write in a professional, factual tone. Focus on key developments, performance highlights, and outlook.`
+
+  const sources = []
+  if (boardNotesAnalysis) sources.push(`BOARD NOTES ANALYSIS:\n${boardNotesAnalysis}`)
+  if (financialsAnalysis) sources.push(`FINANCIALS ANALYSIS:\n${financialsAnalysis}`)
+  if (priorNavAnalysis) sources.push(`PRIOR QUARTER NAV ANALYSIS:\n${priorNavAnalysis}`)
+
+  const userPrompt = `Based on the following source materials, write a Company Update section for a NAV 1-pager.
+
+${sources.join('\n\n')}
+
+Requirements:
+- Write 3-5 concise bullet points or a short paragraph (150-200 words max)
+- Cover: business performance, key metrics changes, notable developments, outlook
+- Use specific numbers and data points from the sources
+- Professional tone suitable for investor reporting
+- Do NOT include section headers, just the content`
+
+  const message = await client.messages.create({
+    model: 'claude-3-5-sonnet-20241022',
+    max_tokens: 2048,
     system: systemPrompt,
     messages: [
       {

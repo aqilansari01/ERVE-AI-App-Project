@@ -1,12 +1,10 @@
-export default function DownloadResult({ result, onReset }) {
+export default function DownloadResult({ result, companyName, onReset }) {
   const handleDownload = () => {
-    const blob = new Blob([result], {
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    })
-    const url = window.URL.createObjectURL(blob)
+    const url = window.URL.createObjectURL(result)
     const a = document.createElement('a')
     a.href = url
-    a.download = `NAV-1-Pager-${new Date().toISOString().split('T')[0]}.docx`
+    const sanitizedName = (companyName || 'Company').replace(/[^a-zA-Z0-9]/g, '-')
+    a.download = `NAV-1-Pager-${sanitizedName}-${new Date().toISOString().split('T')[0]}.pdf`
     document.body.appendChild(a)
     a.click()
     window.URL.revokeObjectURL(url)
@@ -36,7 +34,7 @@ export default function DownloadResult({ result, onReset }) {
           <div>
             <h2 className="text-3xl font-bold mb-2">Success!</h2>
             <p className="text-slate-300">
-              Your NAV 1-pager has been generated successfully
+              Your NAV 1-pager PDF has been generated successfully
             </p>
           </div>
 
@@ -45,7 +43,7 @@ export default function DownloadResult({ result, onReset }) {
               onClick={handleDownload}
               className="px-8 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl"
             >
-              Download NAV 1-Pager
+              Download PDF
             </button>
 
             <button

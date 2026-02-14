@@ -1,10 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import NavInputForm from './components/NavInputForm'
 import NavPreview from './components/NavPreview'
 import ProcessingStatus from './components/ProcessingStatus'
 import DownloadResult from './components/DownloadResult'
 import { processNAVDocuments } from './services/documentProcessor'
 import { createEmptyNavData } from './utils/navDataModel'
+import {
+  fetchCompanyProfiles,
+  saveCompanyProfile,
+  deleteCompanyProfile,
+  applyProfileToNavData,
+} from './services/companyProfiles'
 
 function App() {
   const [step, setStep] = useState('input') // 'input' | 'processing' | 'preview' | 'result'
@@ -19,6 +25,64 @@ function App() {
   const [statusMessage, setStatusMessage] = useState('')
   const [pdfBlob, setPdfBlob] = useState(null)
   const [error, setError] = useState(null)
+
+  // Company profiles state
+  const [profiles, setProfiles] = useState([])
+  const [selectedProfileId, setSelectedProfileId] = useState(null)
+  const [profileSaving, setProfileSaving] = useState(false)
+
+  // Load profiles on mount
+  useEffect(() => {
+    fetchCompanyProfiles()
+      .then(setProfiles)
+      .catch((err) => console.error('Failed to load company profiles:', err))
+  }, [])
+
+  const handleSelectProfile = (profileId) => {
+    setSelectedProfileId(profileId)
+    if (!profileId) return
+
+    const profile = profiles.find((p) => p.id === profileId)
+    if (profile) {
+      setNavData((prev) => applyProfileToNavData(prev, profile))
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    if (!navData.companyName) {
+      setError('Please enter a company name before saving a profile')
+      return
+    }
+    setProfileSaving(true)
+    setError(null)
+    try {
+      const saved = await saveCompanyProfile(navData, selectedProfileId)
+      const updatedProfiles = await fetchCompanyProfiles()
+      setProfiles(updatedProfiles)
+      setSelectedProfileId(saved.id)
+    } catch (err) {
+      console.error('Failed to save profile:', err)
+      setError('Failed to save company profile: ' + (err.message || 'Unknown error'))
+    } finally {
+      setProfileSaving(false)
+    }
+  }
+
+  const handleDeleteProfile = async () => {
+    if (!selectedProfileId) return
+    const profile = profiles.find((p) => p.id === selectedProfileId)
+    if (!confirm(`Delete profile for "${profile?.companyName}"?`)) return
+
+    try {
+      await deleteCompanyProfile(selectedProfileId)
+      setSelectedProfileId(null)
+      const updatedProfiles = await fetchCompanyProfiles()
+      setProfiles(updatedProfiles)
+    } catch (err) {
+      console.error('Failed to delete profile:', err)
+      setError('Failed to delete profile: ' + (err.message || 'Unknown error'))
+    }
+  }
 
   const handleFilesChange = (newFiles) => {
     setFiles(newFiles)
@@ -95,6 +159,7 @@ function App() {
     setStatusMessage('')
     setPdfBlob(null)
     setError(null)
+    setSelectedProfileId(null)
   }
 
   return (
@@ -117,6 +182,12 @@ function App() {
               files={files}
               onFilesChange={handleFilesChange}
               disabled={processing}
+              profiles={profiles}
+              selectedProfileId={selectedProfileId}
+              onSelectProfile={handleSelectProfile}
+              onSaveProfile={handleSaveProfile}
+              onDeleteProfile={handleDeleteProfile}
+              profileSaving={profileSaving}
             />
 
             {error && (

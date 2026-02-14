@@ -66,7 +66,7 @@ const Select = ({ label, value, onChange, options }) => (
 
 const RAG_OPTIONS = ['Green', 'Amber', 'Red']
 
-export default function NavInputForm({ navData, onNavDataChange, files, onFilesChange, disabled }) {
+export default function NavInputForm({ navData, onNavDataChange, files, onFilesChange, disabled, profiles, selectedProfileId, onSelectProfile, onSaveProfile, onDeleteProfile, profileSaving }) {
   const update = (field, value) => {
     onNavDataChange({ ...navData, [field]: value })
   }
@@ -110,6 +110,53 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
         <p className="text-slate-400 text-sm">
           Fill in the form fields and optionally upload documents for AI-assisted extraction
         </p>
+      </div>
+
+      {/* Company Profile Selector */}
+      <div className="bg-slate-800/60 border border-slate-700 rounded-lg px-5 py-4">
+        <div className="flex items-end gap-3">
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-slate-400 mb-1">Select Company</label>
+            <select
+              value={selectedProfileId || ''}
+              onChange={(e) => onSelectProfile(e.target.value || null)}
+              className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none"
+              disabled={disabled}
+            >
+              <option value="">— New Company —</option>
+              {(profiles || []).map((p) => (
+                <option key={p.id} value={p.id}>{p.companyName}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={onSaveProfile}
+            disabled={disabled || profileSaving || !navData.companyName}
+            className={`px-4 py-1.5 rounded text-sm font-medium transition-all whitespace-nowrap ${
+              disabled || profileSaving || !navData.companyName
+                ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+            }`}
+          >
+            {profileSaving ? 'Saving...' : selectedProfileId ? 'Update Profile' : 'Save Profile'}
+          </button>
+          {selectedProfileId && (
+            <button
+              type="button"
+              onClick={onDeleteProfile}
+              disabled={disabled || profileSaving}
+              className="px-3 py-1.5 rounded text-sm font-medium bg-red-600/20 text-red-400 hover:bg-red-600/40 transition-all whitespace-nowrap"
+            >
+              Delete
+            </button>
+          )}
+        </div>
+        {selectedProfileId && (
+          <p className="text-xs text-slate-500 mt-2">
+            Quarterly fields (NAV values, burn/FUME, financials, commentary, waterfall) are not saved to profiles.
+          </p>
+        )}
       </div>
 
       {/* File Uploads */}

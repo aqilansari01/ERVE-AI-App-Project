@@ -76,7 +76,7 @@ const fiscalYearLabel = (year, suffix) => `FY${String(year).padStart(2, '0')} ${
  *   Current year budget
  *
  * Example: Current NAV Quarter = Q1-26
- *   Quarterly: Dec-25, Sep-25, Jun-25, Mar-25 (i.e. Q4-25, Q3-25, Q2-25, Q1-25)
+ *   Quarterly: Mar-25, Jun-25, Sep-25, Dec-25 (i.e. Q1-25, Q2-25, Q3-25, Q4-25 — oldest to newest)
  *   LTM
  *   FY24 Actual, FY25 Actual, FY26 Budget
  */
@@ -87,12 +87,14 @@ export const generateFinancialColumns = (currentNavQuarter) => {
   }
 
   // One quarter lag: the most recent actual quarter is one before the current NAV quarter
+  // Build oldest to newest order
   let mostRecent = prevQuarter(q)
   const quarterLabels = []
   for (let i = 0; i < 4; i++) {
     quarterLabels.push(quarterToMonthLabel(mostRecent))
     mostRecent = prevQuarter(mostRecent)
   }
+  quarterLabels.reverse()
 
   // Current year (calendar year of the NAV quarter), prior year, 2 years prior
   const currentYear = q.year

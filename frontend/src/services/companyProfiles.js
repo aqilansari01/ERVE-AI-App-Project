@@ -1,7 +1,6 @@
 import { supabase } from './supabase'
 
 // Fields that are saved to a company profile (static/semi-static data).
-// Quarterly-changing fields are excluded.
 const PROFILE_FIELDS = [
   'companyName',
   'companyTagline',
@@ -31,6 +30,20 @@ export const extractProfileFromNavData = (navData) => {
   }
   profile.exit_cases = navData.exitCases || null
   profile.blended_expected_return = navData.blendedExpectedReturn || ''
+
+  // Save quarterly data and the "as of quarter" for rolling logic
+  profile.nav_as_of_quarter = navData.currentNavQuarter || ''
+  profile.quarterly_financials = navData.quarterlyFinancials || null
+  profile.valuation_waterfall = navData.valuationWaterfall || null
+  profile.methodology = navData.methodology || ''
+  profile.valuation = navData.valuation || ''
+  profile.implied_multiple = navData.impliedMultiple || ''
+  profile.current_quarter_nav = navData.currentQuarterNav || ''
+  profile.prior_quarter_nav = navData.priorQuarterNav || ''
+  profile.monthly_burn = navData.monthlyBurn || ''
+  profile.fume_months = navData.fumeMonths || ''
+  profile.company_update_commentary = navData.companyUpdateCommentary || ''
+
   return profile
 }
 
@@ -47,6 +60,23 @@ export const applyProfileToNavData = (navData, profile) => {
   if (profile.blended_expected_return) {
     updated.blendedExpectedReturn = profile.blended_expected_return
   }
+
+  // Restore quarterly data (before rolling — App.jsx handles rolling)
+  if (profile.quarterly_financials) {
+    updated.quarterlyFinancials = profile.quarterly_financials
+  }
+  if (profile.valuation_waterfall) {
+    updated.valuationWaterfall = profile.valuation_waterfall
+  }
+  if (profile.methodology) updated.methodology = profile.methodology
+  if (profile.valuation) updated.valuation = profile.valuation
+  if (profile.implied_multiple) updated.impliedMultiple = profile.implied_multiple
+  if (profile.current_quarter_nav) updated.currentQuarterNav = profile.current_quarter_nav
+  if (profile.prior_quarter_nav) updated.priorQuarterNav = profile.prior_quarter_nav
+  if (profile.monthly_burn) updated.monthlyBurn = profile.monthly_burn
+  if (profile.fume_months) updated.fumeMonths = profile.fume_months
+  if (profile.company_update_commentary) updated.companyUpdateCommentary = profile.company_update_commentary
+
   return updated
 }
 
@@ -69,6 +99,17 @@ const toDbRow = (profile) => ({
   last_post_money_valuation: profile.lastPostMoneyValuation,
   exit_cases: profile.exit_cases,
   blended_expected_return: profile.blended_expected_return,
+  nav_as_of_quarter: profile.nav_as_of_quarter,
+  quarterly_financials: profile.quarterly_financials,
+  valuation_waterfall: profile.valuation_waterfall,
+  methodology: profile.methodology,
+  valuation: profile.valuation,
+  implied_multiple: profile.implied_multiple,
+  current_quarter_nav: profile.current_quarter_nav,
+  prior_quarter_nav: profile.prior_quarter_nav,
+  monthly_burn: profile.monthly_burn,
+  fume_months: profile.fume_months,
+  company_update_commentary: profile.company_update_commentary,
 })
 
 const fromDbRow = (row) => ({
@@ -90,6 +131,17 @@ const fromDbRow = (row) => ({
   lastPostMoneyValuation: row.last_post_money_valuation || '',
   exit_cases: row.exit_cases || null,
   blended_expected_return: row.blended_expected_return || '',
+  nav_as_of_quarter: row.nav_as_of_quarter || '',
+  quarterly_financials: row.quarterly_financials || null,
+  valuation_waterfall: row.valuation_waterfall || null,
+  methodology: row.methodology || '',
+  valuation: row.valuation || '',
+  implied_multiple: row.implied_multiple || '',
+  current_quarter_nav: row.current_quarter_nav || '',
+  prior_quarter_nav: row.prior_quarter_nav || '',
+  monthly_burn: row.monthly_burn || '',
+  fume_months: row.fume_months || '',
+  company_update_commentary: row.company_update_commentary || '',
   created_at: row.created_at,
   updated_at: row.updated_at,
 })

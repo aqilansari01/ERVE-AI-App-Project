@@ -1,4 +1,8 @@
-export const createEmptyNavData = () => ({
+import { generateFinancialColumns, generateWaterfallLabels } from './quarterUtils'
+
+const DEFAULT_NAV_QUARTER = 'Q1-26'
+
+export const createEmptyNavData = (navQuarter = DEFAULT_NAV_QUARTER) => ({
   // Header
   companyName: '',
   companyTagline: '',
@@ -12,7 +16,10 @@ export const createEmptyNavData = () => ({
   currentQuarterNav: '',
   priorQuarterNav: '',
   proposedNavValuation: '',
-  navQuarterLabel: 'Q4-25',
+  navQuarterLabel: navQuarter,
+
+  // Current NAV Quarter selector (drives rolling logic)
+  currentNavQuarter: navQuarter,
 
   // Investment Details
   erveInvestment: '',
@@ -38,7 +45,7 @@ export const createEmptyNavData = () => ({
 
   // Quarterly Financials (AI-extracted or manual)
   quarterlyFinancials: {
-    columns: ['Dec-24', 'Mar-25', 'Jun-25', 'Sep-25', 'LTM', 'FY23 Actual', 'FY24 Actual', 'FY25 Budget'],
+    columns: generateFinancialColumns(navQuarter),
     rows: [
       { metric: 'ARR', values: ['', '', '', '', '', '', '', ''] },
       { metric: 'Revenue', values: ['', '', '', '', '', '', '', ''] },
@@ -58,7 +65,7 @@ export const createEmptyNavData = () => ({
 
   // Investment Valuation Waterfall
   valuationWaterfall: {
-    quarterLabels: ['Q4 NAV', 'Q3 NAV', 'Q2 NAV'],
+    quarterLabels: generateWaterfallLabels(navQuarter),
     comparableMultiple: ['', '', ''],
     arr: ['', '', ''],
     evPreDiscount: ['', '', ''],

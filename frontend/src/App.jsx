@@ -11,6 +11,15 @@ import {
   deleteCompanyProfile,
   applyProfileToNavData,
 } from './services/companyProfiles'
+import {
+  parseQuarter,
+  formatQuarter,
+  quarterDiff,
+  generateFinancialColumns,
+  generateWaterfallLabels,
+  rollFinancialsForward,
+  rollWaterfallForward,
+} from './utils/quarterUtils'
 
 function App() {
   const [step, setStep] = useState('input') // 'input' | 'processing' | 'preview' | 'result'
@@ -31,6 +40,9 @@ function App() {
   const [selectedProfileId, setSelectedProfileId] = useState(null)
   const [profileSaving, setProfileSaving] = useState(false)
 
+  // Roll-forward message
+  const [rollForwardMessage, setRollForwardMessage] = useState(null)
+
   // Load profiles on mount
   useEffect(() => {
     fetchCompanyProfiles()
@@ -40,12 +52,55 @@ function App() {
 
   const handleSelectProfile = (profileId) => {
     setSelectedProfileId(profileId)
+    setRollForwardMessage(null)
     if (!profileId) return
 
     const profile = profiles.find((p) => p.id === profileId)
-    if (profile) {
-      setNavData((prev) => applyProfileToNavData(prev, profile))
+    if (!profile) return
+
+    // First apply the profile data as-is
+    let updated = applyProfileToNavData(navData, profile)
+
+    // Check if we need to roll forward
+    const savedQuarter = profile.nav_as_of_quarter
+    const currentQuarter = navData.currentNavQuarter
+
+    if (savedQuarter && currentQuarter) {
+      const savedQ = parseQuarter(savedQuarter)
+      const currentQ = parseQuarter(currentQuarter)
+      const diff = quarterDiff(savedQ, currentQ)
+
+      if (diff > 0) {
+        // Roll forward the data
+        const newFinCols = generateFinancialColumns(currentQuarter)
+        const newWfLabels = generateWaterfallLabels(currentQuarter)
+
+        if (updated.quarterlyFinancials) {
+          updated.quarterlyFinancials = rollFinancialsForward(
+            updated.quarterlyFinancials,
+            diff,
+            newFinCols
+          )
+        }
+
+        if (updated.valuationWaterfall) {
+          updated.valuationWaterfall = rollWaterfallForward(
+            updated.valuationWaterfall,
+            diff,
+            newWfLabels
+          )
+        }
+
+        // Update the quarter label to current
+        updated.navQuarterLabel = currentQuarter
+
+        setRollForwardMessage(
+          `Data rolled forward from ${savedQuarter}. Please update the new quarter values.`
+        )
+      }
     }
+
+    setNavData(updated)
   }
 
   const handleSaveProfile = async () => {
@@ -160,6 +215,7 @@ function App() {
     setPdfBlob(null)
     setError(null)
     setSelectedProfileId(null)
+    setRollForwardMessage(null)
   }
 
   return (
@@ -188,6 +244,8 @@ function App() {
               onSaveProfile={handleSaveProfile}
               onDeleteProfile={handleDeleteProfile}
               profileSaving={profileSaving}
+              rollForwardMessage={rollForwardMessage}
+              onDismissRollMessage={() => setRollForwardMessage(null)}
             />
 
             {error && (

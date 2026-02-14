@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import FileUpload from './FileUpload'
+import { getQuarterOptions, generateFinancialColumns, generateWaterfallLabels } from '../utils/quarterUtils'
 
 const Section = ({ title, defaultOpen = false, children }) => {
   const [open, setOpen] = useState(defaultOpen)
@@ -66,9 +67,27 @@ const Select = ({ label, value, onChange, options }) => (
 
 const RAG_OPTIONS = ['Green', 'Amber', 'Red']
 
-export default function NavInputForm({ navData, onNavDataChange, files, onFilesChange, disabled, profiles, selectedProfileId, onSelectProfile, onSaveProfile, onDeleteProfile, profileSaving }) {
+export default function NavInputForm({ navData, onNavDataChange, files, onFilesChange, disabled, profiles, selectedProfileId, onSelectProfile, onSaveProfile, onDeleteProfile, profileSaving, rollForwardMessage, onDismissRollMessage }) {
   const update = (field, value) => {
     onNavDataChange({ ...navData, [field]: value })
+  }
+
+  const handleQuarterChange = (newQuarter) => {
+    const newColumns = generateFinancialColumns(newQuarter)
+    const newLabels = generateWaterfallLabels(newQuarter)
+    onNavDataChange({
+      ...navData,
+      currentNavQuarter: newQuarter,
+      navQuarterLabel: newQuarter,
+      quarterlyFinancials: {
+        ...navData.quarterlyFinancials,
+        columns: newColumns,
+      },
+      valuationWaterfall: {
+        ...navData.valuationWaterfall,
+        quarterLabels: newLabels,
+      },
+    })
   }
 
   const updateNested = (path, value) => {
@@ -154,9 +173,45 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
         </div>
         {selectedProfileId && (
           <p className="text-xs text-slate-500 mt-2">
-            Quarterly fields (NAV values, burn/FUME, financials, commentary, waterfall) are not saved to profiles.
+            All data including quarterly financials and waterfall is saved with the profile. Data will auto-roll forward when loaded in a later quarter.
           </p>
         )}
+      </div>
+
+      {/* Roll-forward notification */}
+      {rollForwardMessage && (
+        <div className="bg-amber-500/10 border border-amber-500 rounded-lg px-5 py-3 flex items-center justify-between">
+          <p className="text-amber-300 text-sm">{rollForwardMessage}</p>
+          <button
+            type="button"
+            onClick={onDismissRollMessage}
+            className="ml-4 text-amber-400 hover:text-amber-200 text-lg font-bold leading-none"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
+      {/* Current NAV Quarter Selector */}
+      <div className="bg-slate-800/60 border border-slate-700 rounded-lg px-5 py-4">
+        <div className="flex items-end gap-3">
+          <div className="w-48">
+            <label className="block text-xs font-medium text-slate-400 mb-1">Current NAV Quarter</label>
+            <select
+              value={navData.currentNavQuarter || 'Q1-26'}
+              onChange={(e) => handleQuarterChange(e.target.value)}
+              className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none"
+              disabled={disabled}
+            >
+              {getQuarterOptions().map((q) => (
+                <option key={q} value={q}>{q}</option>
+              ))}
+            </select>
+          </div>
+          <p className="text-xs text-slate-500 pb-1">
+            This drives the rolling column headers for Quarterly Financials and Valuation Waterfall.
+          </p>
+        </div>
       </div>
 
       {/* File Uploads */}

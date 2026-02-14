@@ -12,4 +12,6 @@ ALTER TABLE company_profiles
   ADD COLUMN IF NOT EXISTS prior_quarter_nav TEXT DEFAULT '',
   ADD COLUMN IF NOT EXISTS monthly_burn TEXT DEFAULT '',
   ADD COLUMN IF NOT EXISTS fume_months TEXT DEFAULT '',
-  ADD COLUMN IF NOT EXISTS company_update_commentary TEXT DEFAULT '';
+  ADD COLUMN IF NOT EXISTS company_update_commentary TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS nav_quarter_label TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS proposed_nav_valuation TEXT DEFAULT '';

@@ -91,9 +91,6 @@ function App() {
           )
         }
 
-        // Update the quarter label to current
-        updated.navQuarterLabel = currentQuarter
-
         setRollForwardMessage(
           `Data rolled forward from ${savedQuarter}. Please update the new quarter values.`
         )

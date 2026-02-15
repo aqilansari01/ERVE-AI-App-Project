@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import FileUpload from './FileUpload'
 import { getQuarterOptions, generateFinancialColumns, generateWaterfallLabels } from '../utils/quarterUtils'
-import { CURRENCY_OPTIONS, getCurrencySymbol } from '../utils/navDataModel'
+import { CURRENCY_OPTIONS, getCurrencySymbol, buildProposedNavLine, getPriorQuarterLabel } from '../utils/navDataModel'
 
 const Section = ({ title, defaultOpen = false, children }) => {
   const [open, setOpen] = useState(defaultOpen)
@@ -104,7 +104,6 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
     onNavDataChange({
       ...navData,
       currentNavQuarter: newQuarter,
-      navQuarterLabel: newQuarter,
       quarterlyFinancials: {
         ...navData.quarterlyFinancials,
         columns: newColumns,
@@ -148,11 +147,10 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
     updateNested(`exitCases.${scenario}.${field}`, value)
   }
 
-  // Build dynamic placeholder for Proposed NAV Valuation Line
-  const invSym = getCurrencySymbol(navData.investmentCurrency) || '€'
-  const fundSym = getCurrencySymbol(navData.fundCurrency) || '$'
-  const qLabel = navData.navQuarterLabel || 'Q4-25'
-  const navPlaceholder = `e.g., Proposed NAV valuation ${qLabel}: ${invSym}19.0m / ${fundSym}21.6m`
+  // Compute derived quarter labels and proposed NAV line
+  const currentQ = navData.currentNavQuarter || 'Q1-26'
+  const priorQ = getPriorQuarterLabel(currentQ)
+  const proposedNavLine = buildProposedNavLine(navData)
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
@@ -303,32 +301,35 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field
-            label={`Current Quarter NAV${navData.investmentCurrency ? ` (${navData.investmentCurrency})` : ''}`}
+            label={`${currentQ} NAV${navData.investmentCurrency ? ` (${navData.investmentCurrency})` : ''}`}
             value={navData.currentQuarterNav}
             onChange={(v) => update('currentQuarterNav', v)}
-            placeholder={`e.g., ${invSym}19.0m`}
+            placeholder="e.g., 19.0m"
           />
           <Field
-            label={`Current Quarter NAV${navData.fundCurrency ? ` (${navData.fundCurrency})` : ' (fund ccy)'}`}
+            label={`${currentQ} NAV${navData.fundCurrency ? ` (${navData.fundCurrency})` : ' (fund ccy)'}`}
             value={navData.currentQuarterNavFund}
             onChange={(v) => update('currentQuarterNavFund', v)}
-            placeholder={`e.g., ${fundSym}21.6m`}
+            placeholder="e.g., 21.6m"
           />
           <Field
-            label={`Prior Quarter NAV${navData.investmentCurrency ? ` (${navData.investmentCurrency})` : ''}`}
+            label={`${priorQ || 'Prior'} NAV${navData.investmentCurrency ? ` (${navData.investmentCurrency})` : ''}`}
             value={navData.priorQuarterNav}
             onChange={(v) => update('priorQuarterNav', v)}
-            placeholder={`e.g., ${invSym}19.0m`}
+            placeholder="e.g., 19.0m"
           />
           <Field
-            label={`Prior Quarter NAV${navData.fundCurrency ? ` (${navData.fundCurrency})` : ' (fund ccy)'}`}
+            label={`${priorQ || 'Prior'} NAV${navData.fundCurrency ? ` (${navData.fundCurrency})` : ' (fund ccy)'}`}
             value={navData.priorQuarterNavFund}
             onChange={(v) => update('priorQuarterNavFund', v)}
-            placeholder={`e.g., ${fundSym}20.5m`}
+            placeholder="e.g., 20.5m"
           />
         </div>
-        <Field label="Quarter Label" value={navData.navQuarterLabel} onChange={(v) => update('navQuarterLabel', v)} placeholder="e.g., Q4-25" />
-        <Field label="Proposed NAV Valuation Line" value={navData.proposedNavValuation} onChange={(v) => update('proposedNavValuation', v)} placeholder={navPlaceholder} />
+        <div className="mt-1 px-1">
+          <p className="text-xs text-slate-500 italic">
+            {proposedNavLine || 'Fill in NAV values and currencies above to generate the proposed valuation line.'}
+          </p>
+        </div>
       </Section>
 
       {/* Investment Details */}

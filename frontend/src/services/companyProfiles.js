@@ -50,8 +50,6 @@ export const extractProfileFromNavData = (navData) => {
   profile.monthly_burn = navData.monthlyBurn || ''
   profile.fume_months = navData.fumeMonths || ''
   profile.company_update_commentary = navData.companyUpdateCommentary || ''
-  profile.nav_quarter_label = navData.navQuarterLabel || ''
-  profile.proposed_nav_valuation = navData.proposedNavValuation || ''
 
   return profile
 }
@@ -85,8 +83,6 @@ export const applyProfileToNavData = (navData, profile) => {
   if (profile.monthly_burn) updated.monthlyBurn = profile.monthly_burn
   if (profile.fume_months) updated.fumeMonths = profile.fume_months
   if (profile.company_update_commentary) updated.companyUpdateCommentary = profile.company_update_commentary
-  if (profile.nav_quarter_label) updated.navQuarterLabel = profile.nav_quarter_label
-  if (profile.proposed_nav_valuation) updated.proposedNavValuation = profile.proposed_nav_valuation
 
   return updated
 }
@@ -128,8 +124,6 @@ const toDbRow = (profile) => ({
   monthly_burn: profile.monthly_burn,
   fume_months: profile.fume_months,
   company_update_commentary: profile.company_update_commentary,
-  nav_quarter_label: profile.nav_quarter_label,
-  proposed_nav_valuation: profile.proposed_nav_valuation,
 })
 
 const fromDbRow = (row) => ({
@@ -169,8 +163,6 @@ const fromDbRow = (row) => ({
   monthly_burn: row.monthly_burn || '',
   fume_months: row.fume_months || '',
   company_update_commentary: row.company_update_commentary || '',
-  nav_quarter_label: row.nav_quarter_label || '',
-  proposed_nav_valuation: row.proposed_nav_valuation || '',
   created_at: row.created_at,
   updated_at: row.updated_at,
 })

@@ -1,4 +1,4 @@
-import { generateFinancialColumns, generateWaterfallLabels } from './quarterUtils'
+import { generateFinancialColumns, generateWaterfallLabels, parseQuarter, formatQuarter, prevQuarter } from './quarterUtils'
 
 const DEFAULT_NAV_QUARTER = 'Q1-26'
 
@@ -14,6 +14,39 @@ export const CURRENCY_SYMBOLS = {
 }
 
 export const getCurrencySymbol = (code) => CURRENCY_SYMBOLS[code] || ''
+
+/**
+ * Compute the prior quarter string from a quarter like "Q4-25" -> "Q3-25".
+ */
+export const getPriorQuarterLabel = (currentNavQuarter) => {
+  const q = parseQuarter(currentNavQuarter)
+  if (!q) return ''
+  return formatQuarter(prevQuarter(q))
+}
+
+/**
+ * Build the "Proposed NAV valuation" line from nav data.
+ * Format: Proposed NAV valuation Q4-25: €19.0m / $21.6m (Q3-25: €19.0m / $20.5m)
+ * Returns empty string if required values are missing.
+ */
+export const buildProposedNavLine = (navData) => {
+  const invSym = getCurrencySymbol(navData.investmentCurrency)
+  const fundSym = getCurrencySymbol(navData.fundCurrency)
+  const currentQ = navData.currentNavQuarter
+  const priorQ = getPriorQuarterLabel(currentQ)
+
+  if (!currentQ || !invSym || !fundSym || !navData.currentQuarterNav || !navData.currentQuarterNavFund) {
+    return ''
+  }
+
+  let line = `Proposed NAV valuation ${currentQ}: ${invSym}${navData.currentQuarterNav} / ${fundSym}${navData.currentQuarterNavFund}`
+
+  if (priorQ && navData.priorQuarterNav && navData.priorQuarterNavFund) {
+    line += ` (${priorQ}: ${invSym}${navData.priorQuarterNav} / ${fundSym}${navData.priorQuarterNavFund})`
+  }
+
+  return line
+}
 
 export const createEmptyNavData = (navQuarter = DEFAULT_NAV_QUARTER) => ({
   // Header
@@ -34,8 +67,6 @@ export const createEmptyNavData = (navQuarter = DEFAULT_NAV_QUARTER) => ({
   currentQuarterNavFund: '',
   priorQuarterNav: '',
   priorQuarterNavFund: '',
-  proposedNavValuation: '',
-  navQuarterLabel: navQuarter,
 
   // Current NAV Quarter selector (drives rolling logic)
   currentNavQuarter: navQuarter,

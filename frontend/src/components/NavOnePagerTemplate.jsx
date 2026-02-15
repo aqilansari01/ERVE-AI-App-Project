@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import { getCurrencySymbol } from '../utils/navDataModel'
+import { getCurrencySymbol, buildProposedNavLine } from '../utils/navDataModel'
 
 const COLORS = {
   navy: '#1B2A4A',
@@ -365,7 +365,7 @@ const NavOnePagerTemplate = forwardRef(({ navData }, ref) => {
         </div>
         <div style={styles.headerCenter}>
           <div style={styles.navValuation}>
-            {data.proposedNavValuation || `Proposed NAV valuation ${data.navQuarterLabel}`}
+            {buildProposedNavLine(data) || `Proposed NAV valuation ${data.currentNavQuarter || ''}`}
           </div>
         </div>
         <div style={styles.headerRight}>

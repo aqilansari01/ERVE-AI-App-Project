@@ -93,6 +93,7 @@ Write in a professional, factual tone. Focus on key developments, performance hi
 ${sources.join('\n\n')}
 
 Requirements:
+- If a PRIOR QUARTER NAV ANALYSIS is provided, use it as a reference for the tone, structure, format, and level of detail. Mirror how the prior quarter's commentary was written, but update with the current quarter's data and developments.
 - Write 3-5 concise bullet points or a short paragraph (150-200 words max)
 - Cover: business performance, key metrics changes, notable developments, outlook
 - Use specific numbers and data points from the sources

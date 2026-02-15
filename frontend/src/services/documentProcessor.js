@@ -1,4 +1,3 @@
-import { uploadFile } from './supabase'
 import { analyzeDocument, extractQuarterlyFinancials, generateCompanyUpdate, extractTextFromPDF } from './claude'
 import {
   parseWordDocument,
@@ -38,19 +37,6 @@ export const processNAVDocuments = async (files, progressCallback) => {
     }
 
     progressCallback('Starting document processing...', 5)
-
-    // Upload available files to storage
-    const timestamp = Date.now()
-    const uploadPromises = []
-    Object.entries(files).forEach(([key, file]) => {
-      if (file) {
-        const path = `${timestamp}/${key}-${file.name}`
-        uploadPromises.push(uploadFile(file, path))
-      }
-    })
-
-    progressCallback('Uploading documents to storage...', 10)
-    await Promise.all(uploadPromises)
 
     // Extract content from available documents
     let priorNavContent = null

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import FileUpload from './FileUpload'
 import { getQuarterOptions, generateFinancialColumns, generateWaterfallLabels } from '../utils/quarterUtils'
+import { CURRENCY_OPTIONS, getCurrencySymbol } from '../utils/navDataModel'
 
 const Section = ({ title, defaultOpen = false, children }) => {
   const [open, setOpen] = useState(defaultOpen)
@@ -65,6 +66,31 @@ const Select = ({ label, value, onChange, options }) => (
   </div>
 )
 
+const CurrencyField = ({ label, value, onChange, currencyValue, onCurrencyChange, placeholder = '' }) => (
+  <div>
+    <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
+    <div className="flex">
+      <select
+        value={currencyValue}
+        onChange={(e) => onCurrencyChange(e.target.value)}
+        className="bg-slate-700 border border-slate-600 border-r-0 rounded-l px-2 py-1.5 text-xs text-white focus:border-blue-500 focus:outline-none"
+      >
+        <option value="">—</option>
+        {CURRENCY_OPTIONS.map((c) => (
+          <option key={c} value={c}>{c}</option>
+        ))}
+      </select>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="flex-1 bg-slate-800 border border-slate-600 rounded-r px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+      />
+    </div>
+  </div>
+)
+
 const RAG_OPTIONS = ['Green', 'Amber', 'Red']
 
 export default function NavInputForm({ navData, onNavDataChange, files, onFilesChange, disabled, profiles, selectedProfileId, onSelectProfile, onSaveProfile, onDeleteProfile, profileSaving, rollForwardMessage, onDismissRollMessage }) {
@@ -121,6 +147,12 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
   const updateExitCase = (scenario, field, value) => {
     updateNested(`exitCases.${scenario}.${field}`, value)
   }
+
+  // Build dynamic placeholder for Proposed NAV Valuation Line
+  const invSym = getCurrencySymbol(navData.investmentCurrency) || '€'
+  const fundSym = getCurrencySymbol(navData.fundCurrency) || '$'
+  const qLabel = navData.navQuarterLabel || 'Q4-25'
+  const navPlaceholder = `e.g., Proposed NAV valuation ${qLabel}: ${invSym}19.0m / ${fundSym}21.6m`
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
@@ -241,12 +273,62 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
 
       {/* NAV Values */}
       <Section title="NAV Values" defaultOpen={true}>
-        <div className="grid grid-cols-3 gap-3">
-          <Field label="Current Quarter NAV" value={navData.currentQuarterNav} onChange={(v) => update('currentQuarterNav', v)} placeholder="e.g., €19.0m" />
-          <Field label="Prior Quarter NAV" value={navData.priorQuarterNav} onChange={(v) => update('priorQuarterNav', v)} placeholder="e.g., €17.5m" />
-          <Field label="Quarter Label" value={navData.navQuarterLabel} onChange={(v) => update('navQuarterLabel', v)} placeholder="e.g., Q4-25" />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Investment Currency</label>
+            <select
+              value={navData.investmentCurrency}
+              onChange={(e) => update('investmentCurrency', e.target.value)}
+              className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">— Select —</option>
+              {CURRENCY_OPTIONS.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Fund Currency</label>
+            <select
+              value={navData.fundCurrency}
+              onChange={(e) => update('fundCurrency', e.target.value)}
+              className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">— Select —</option>
+              {CURRENCY_OPTIONS.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <Field label="Proposed NAV Valuation Line" value={navData.proposedNavValuation} onChange={(v) => update('proposedNavValuation', v)} placeholder="e.g., Proposed NAV valuation Q4-25: €19.0m / $21.9m" />
+        <div className="grid grid-cols-2 gap-3">
+          <Field
+            label={`Current Quarter NAV${navData.investmentCurrency ? ` (${navData.investmentCurrency})` : ''}`}
+            value={navData.currentQuarterNav}
+            onChange={(v) => update('currentQuarterNav', v)}
+            placeholder={`e.g., ${invSym}19.0m`}
+          />
+          <Field
+            label={`Current Quarter NAV${navData.fundCurrency ? ` (${navData.fundCurrency})` : ' (fund ccy)'}`}
+            value={navData.currentQuarterNavFund}
+            onChange={(v) => update('currentQuarterNavFund', v)}
+            placeholder={`e.g., ${fundSym}21.6m`}
+          />
+          <Field
+            label={`Prior Quarter NAV${navData.investmentCurrency ? ` (${navData.investmentCurrency})` : ''}`}
+            value={navData.priorQuarterNav}
+            onChange={(v) => update('priorQuarterNav', v)}
+            placeholder={`e.g., ${invSym}19.0m`}
+          />
+          <Field
+            label={`Prior Quarter NAV${navData.fundCurrency ? ` (${navData.fundCurrency})` : ' (fund ccy)'}`}
+            value={navData.priorQuarterNavFund}
+            onChange={(v) => update('priorQuarterNavFund', v)}
+            placeholder={`e.g., ${fundSym}20.5m`}
+          />
+        </div>
+        <Field label="Quarter Label" value={navData.navQuarterLabel} onChange={(v) => update('navQuarterLabel', v)} placeholder="e.g., Q4-25" />
+        <Field label="Proposed NAV Valuation Line" value={navData.proposedNavValuation} onChange={(v) => update('proposedNavValuation', v)} placeholder={navPlaceholder} />
       </Section>
 
       {/* Investment Details */}
@@ -260,10 +342,31 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
           <Field label="Other Shareholders" value={navData.otherShareholders} onChange={(v) => update('otherShareholders', v)} placeholder="e.g., Founders (40%), Accel (15%)" />
           <Field label="Board Member" value={navData.boardMember} onChange={(v) => update('boardMember', v)} placeholder="Name" />
           <Field label="Board Observer" value={navData.boardObserver} onChange={(v) => update('boardObserver', v)} placeholder="Name" />
-          <Field label="Monthly Burn" value={navData.monthlyBurn} onChange={(v) => update('monthlyBurn', v)} placeholder="e.g., €200k" />
+          <CurrencyField
+            label="Monthly Burn"
+            value={navData.monthlyBurn}
+            onChange={(v) => update('monthlyBurn', v)}
+            currencyValue={navData.monthlyBurnCurrency}
+            onCurrencyChange={(v) => update('monthlyBurnCurrency', v)}
+            placeholder="e.g., 200k"
+          />
           <Field label="FUME Months" value={navData.fumeMonths} onChange={(v) => update('fumeMonths', v)} placeholder="e.g., 18" />
-          <Field label="Last Pre-money Valuation" value={navData.lastPreMoneyValuation} onChange={(v) => update('lastPreMoneyValuation', v)} placeholder="e.g., €30.0m" />
-          <Field label="Last Post-money Valuation" value={navData.lastPostMoneyValuation} onChange={(v) => update('lastPostMoneyValuation', v)} placeholder="e.g., €35.0m" />
+          <CurrencyField
+            label="Last Pre-money Valuation"
+            value={navData.lastPreMoneyValuation}
+            onChange={(v) => update('lastPreMoneyValuation', v)}
+            currencyValue={navData.lastPreMoneyCurrency}
+            onCurrencyChange={(v) => update('lastPreMoneyCurrency', v)}
+            placeholder="e.g., 30.0m"
+          />
+          <CurrencyField
+            label="Last Post-money Valuation"
+            value={navData.lastPostMoneyValuation}
+            onChange={(v) => update('lastPostMoneyValuation', v)}
+            currencyValue={navData.lastPostMoneyCurrency}
+            onCurrencyChange={(v) => update('lastPostMoneyCurrency', v)}
+            placeholder="e.g., 35.0m"
+          />
         </div>
       </Section>
 

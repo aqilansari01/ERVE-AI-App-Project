@@ -1,4 +1,5 @@
 import { forwardRef } from 'react'
+import { getCurrencySymbol } from '../utils/navDataModel'
 
 const COLORS = {
   navy: '#1B2A4A',
@@ -176,31 +177,50 @@ const RAG_COLORS = {
   Red: COLORS.red,
 }
 
-const InvestmentSummaryTable = ({ data }) => (
-  <table style={styles.table}>
-    <tbody>
-      {[
-        ['ERVE Investment', data.erveInvestment],
-        ['Break-down by round', data.roundBreakdown],
-        ['Total Raised', data.totalRaised],
-        ['ERVE % / Security', `${data.erveOwnership} / ${data.securityType}`],
-        ['Other Shareholders', data.otherShareholders],
-        ['Board Member', data.boardMember],
-        ['Board Observer', data.boardObserver],
-        ['Monthly Burn / FUME', `${data.monthlyBurn} / ${data.fumeMonths} months`],
-        ['Last Pre-money', data.lastPreMoneyValuation],
-        ['Last Post-money', data.lastPostMoneyValuation],
-        ['Current Quarter NAV', data.currentQuarterNav],
-        ['Prior Quarter NAV', data.priorQuarterNav],
-      ].map(([label, value], i) => (
-        <tr key={i}>
-          <td style={styles.tdLabel}>{label}</td>
-          <td style={styles.tdValue}>{value || '—'}</td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-)
+const InvestmentSummaryTable = ({ data }) => {
+  const burnPrefix = getCurrencySymbol(data.monthlyBurnCurrency)
+  const preMoneyPrefix = getCurrencySymbol(data.lastPreMoneyCurrency)
+  const postMoneyPrefix = getCurrencySymbol(data.lastPostMoneyCurrency)
+
+  const formatWithCcy = (prefix, value) => {
+    if (!value) return '—'
+    return prefix ? `${prefix}${value}` : value
+  }
+
+  // Build current/prior NAV display with dual currencies
+  const currentNav = data.currentQuarterNav && data.currentQuarterNavFund
+    ? `${data.currentQuarterNav} / ${data.currentQuarterNavFund}`
+    : data.currentQuarterNav || data.currentQuarterNavFund || ''
+  const priorNav = data.priorQuarterNav && data.priorQuarterNavFund
+    ? `${data.priorQuarterNav} / ${data.priorQuarterNavFund}`
+    : data.priorQuarterNav || data.priorQuarterNavFund || ''
+
+  return (
+    <table style={styles.table}>
+      <tbody>
+        {[
+          ['ERVE Investment', data.erveInvestment],
+          ['Break-down by round', data.roundBreakdown],
+          ['Total Raised', data.totalRaised],
+          ['ERVE % / Security', `${data.erveOwnership} / ${data.securityType}`],
+          ['Other Shareholders', data.otherShareholders],
+          ['Board Member', data.boardMember],
+          ['Board Observer', data.boardObserver],
+          ['Monthly Burn / FUME', `${formatWithCcy(burnPrefix, data.monthlyBurn)} / ${data.fumeMonths} months`],
+          ['Last Pre-money', formatWithCcy(preMoneyPrefix, data.lastPreMoneyValuation)],
+          ['Last Post-money', formatWithCcy(postMoneyPrefix, data.lastPostMoneyValuation)],
+          ['Current Quarter NAV', currentNav],
+          ['Prior Quarter NAV', priorNav],
+        ].map(([label, value], i) => (
+          <tr key={i}>
+            <td style={styles.tdLabel}>{label}</td>
+            <td style={styles.tdValue}>{value || '—'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
 
 const RagStatus = ({ data }) => (
   <div style={styles.ragRow}>

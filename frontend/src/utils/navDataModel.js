@@ -2,6 +2,19 @@ import { generateFinancialColumns, generateWaterfallLabels } from './quarterUtil
 
 const DEFAULT_NAV_QUARTER = 'Q1-26'
 
+export const CURRENCY_OPTIONS = ['EUR', 'USD', 'CHF', 'NOK', 'GBP', 'SEK']
+
+export const CURRENCY_SYMBOLS = {
+  EUR: '€',
+  USD: '$',
+  GBP: '£',
+  CHF: 'CHF ',
+  NOK: 'NOK ',
+  SEK: 'SEK ',
+}
+
+export const getCurrencySymbol = (code) => CURRENCY_SYMBOLS[code] || ''
+
 export const createEmptyNavData = (navQuarter = DEFAULT_NAV_QUARTER) => ({
   // Header
   companyName: '',
@@ -12,9 +25,15 @@ export const createEmptyNavData = (navQuarter = DEFAULT_NAV_QUARTER) => ({
   // Company Description
   companyDescription: '',
 
+  // Currency selectors
+  investmentCurrency: '',
+  fundCurrency: '',
+
   // NAV Values
   currentQuarterNav: '',
+  currentQuarterNavFund: '',
   priorQuarterNav: '',
+  priorQuarterNavFund: '',
   proposedNavValuation: '',
   navQuarterLabel: navQuarter,
 
@@ -31,9 +50,12 @@ export const createEmptyNavData = (navQuarter = DEFAULT_NAV_QUARTER) => ({
   boardMember: '',
   boardObserver: '',
   monthlyBurn: '',
+  monthlyBurnCurrency: '',
   fumeMonths: '',
   lastPreMoneyValuation: '',
+  lastPreMoneyCurrency: '',
   lastPostMoneyValuation: '',
+  lastPostMoneyCurrency: '',
 
   // RAG Status
   ragFinancials: 'Green',

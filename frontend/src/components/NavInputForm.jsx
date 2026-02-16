@@ -102,19 +102,40 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
   }
 
   const handleQuarterChange = (newQuarter) => {
-    const newColumns = generateFinancialColumns(newQuarter)
-    const newLabels = generateWaterfallLabels(newQuarter)
+    const oldCols = navData.quarterlyFinancials.columns
+    const newCols = generateFinancialColumns(newQuarter)
+
+    const newRows = navData.quarterlyFinancials.rows.map((row) => {
+      const dataMap = {}
+      oldCols.forEach((col, i) => {
+        dataMap[col] = row.values[i] || ''
+      })
+      const newValues = newCols.map((col) => dataMap[col] || '')
+      return { ...row, values: newValues }
+    })
+
+    const oldWfLabels = navData.valuationWaterfall.quarterLabels
+    const newWfLabels = generateWaterfallLabels(newQuarter)
+
+    const waterfallKeys = [
+      'comparableMultiple', 'arr', 'evPreDiscount', 'discountRate',
+      'evAfterDiscount', 'cash', 'equityValue', 'erveOwnership', 'compsBasedValue',
+    ]
+
+    const newWaterfall = { ...navData.valuationWaterfall, quarterLabels: newWfLabels }
+    waterfallKeys.forEach((key) => {
+      const dataMap = {}
+      oldWfLabels.forEach((label, i) => {
+        dataMap[label] = navData.valuationWaterfall[key][i] || ''
+      })
+      newWaterfall[key] = newWfLabels.map((label) => dataMap[label] || '')
+    })
+
     onNavDataChange({
       ...navData,
       currentNavQuarter: newQuarter,
-      quarterlyFinancials: {
-        ...navData.quarterlyFinancials,
-        columns: newColumns,
-      },
-      valuationWaterfall: {
-        ...navData.valuationWaterfall,
-        quarterLabels: newLabels,
-      },
+      quarterlyFinancials: { columns: newCols, rows: newRows },
+      valuationWaterfall: newWaterfall,
     })
   }
 

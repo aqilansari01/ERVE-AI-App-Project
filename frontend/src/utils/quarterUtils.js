@@ -146,23 +146,22 @@ export const getQuarterOptions = () => {
 
 /**
  * Roll quarterly financials data forward by a given number of quarters.
- * Shifts column data left, newest columns become empty.
+ * Uses label-based remapping so data stays aligned with the correct column headers.
  */
 export const rollFinancialsForward = (financials, quartersToRoll, newColumns) => {
-  if (quartersToRoll <= 0 || quartersToRoll > 4) {
+  if (quartersToRoll <= 0) {
     return { ...financials, columns: newColumns }
   }
 
-  // For the 4 quarterly columns (indices 0-3), shift left by quartersToRoll
+  const oldColumns = financials.columns
+
   const rolledRows = financials.rows.map((row) => {
-    const quarterValues = row.values.slice(0, 4) // first 4 are quarterly
-    const otherValues = row.values.slice(4) // LTM + annual columns
-
-    // Shift quarterly values: drop oldest, add empty for new
-    const shifted = [...quarterValues.slice(quartersToRoll), ...Array(quartersToRoll).fill('')]
-
-    // Annual columns get cleared since they may change with the year
-    return { ...row, values: [...shifted, ...otherValues] }
+    const dataMap = {}
+    oldColumns.forEach((col, i) => {
+      dataMap[col] = row.values[i] || ''
+    })
+    const newValues = newColumns.map((col) => dataMap[col] || '')
+    return { ...row, values: newValues }
   })
 
   return { columns: newColumns, rows: rolledRows }
@@ -170,10 +169,10 @@ export const rollFinancialsForward = (financials, quartersToRoll, newColumns) =>
 
 /**
  * Roll valuation waterfall data forward by a given number of quarters.
- * Shifts data right (current -> prior -> 2Q ago), newest column becomes empty.
+ * Uses label-based remapping so data stays aligned with the correct column headers.
  */
 export const rollWaterfallForward = (waterfall, quartersToRoll, newLabels) => {
-  if (quartersToRoll <= 0 || quartersToRoll > 3) {
+  if (quartersToRoll <= 0) {
     return { ...waterfall, quarterLabels: newLabels }
   }
 
@@ -182,20 +181,15 @@ export const rollWaterfallForward = (waterfall, quartersToRoll, newLabels) => {
     'evAfterDiscount', 'cash', 'equityValue', 'erveOwnership', 'compsBasedValue',
   ]
 
+  const oldLabels = waterfall.quarterLabels
   const rolled = { ...waterfall, quarterLabels: newLabels }
 
   for (const metric of metrics) {
-    const values = [...waterfall[metric]]
-    if (quartersToRoll >= 3) {
-      // All data is too old
-      rolled[metric] = ['', '', '']
-    } else if (quartersToRoll === 2) {
-      // Only index 0 (was current) moves to index 2 (two quarters ago)
-      rolled[metric] = ['', '', values[0]]
-    } else {
-      // quartersToRoll === 1: current -> prior, prior -> 2Q ago, new current is empty
-      rolled[metric] = ['', values[0], values[1]]
-    }
+    const dataMap = {}
+    oldLabels.forEach((label, i) => {
+      dataMap[label] = waterfall[metric][i] || ''
+    })
+    rolled[metric] = newLabels.map((label) => dataMap[label] || '')
   }
 
   return rolled

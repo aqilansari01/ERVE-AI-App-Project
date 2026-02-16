@@ -23,7 +23,7 @@ ${documentContent}
 Please extract and structure the key information in a clear, organized format.`
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-5-20250514',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 4096,
     system: systemPrompt,
     messages: [
@@ -60,7 +60,7 @@ Return this exact JSON structure, filling in values found in the document. Use e
 Map the document's time periods to the closest matching columns. Return ONLY the JSON object.`
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-5-20250514',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 4096,
     system: systemPrompt,
     messages: [
@@ -101,7 +101,7 @@ Requirements:
 - Do NOT include section headers, just the content`
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-5-20250514',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 2048,
     system: systemPrompt,
     messages: [
@@ -121,7 +121,7 @@ export const extractTextFromPDF = async (base64Content) => {
   const userPrompt = `Extract all text content from this document. Preserve the structure and organization of the information.`
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-5-20250514',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 8192,
     system: systemPrompt,
     messages: [

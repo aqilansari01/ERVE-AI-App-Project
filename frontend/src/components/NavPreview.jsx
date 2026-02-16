@@ -25,18 +25,18 @@ export default function NavPreview({ navData, onBack, onPdfGenerated }) {
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
-          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors"
+          className="px-5 py-2.5 bg-navy-700 hover:bg-navy-600 rounded-lg text-sm font-display font-medium tracking-wide text-white transition-colors"
         >
           Back to Edit
         </button>
-        <h2 className="text-xl font-semibold">Preview</h2>
+        <h2 className="font-display text-xl font-semibold tracking-wide text-white">Preview</h2>
         <button
           onClick={handleGeneratePDF}
           disabled={generating}
-          className={`px-6 py-2 rounded-lg font-semibold text-sm transition-all ${
+          className={`px-6 py-2.5 rounded-lg font-display font-semibold text-sm tracking-wide transition-all ${
             generating
-              ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-              : 'bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 shadow-lg'
+              ? 'bg-navy-700 text-navy-400 cursor-not-allowed'
+              : 'bg-accent-500 text-white hover:bg-accent-600 shadow-md hover:shadow-lg'
           }`}
         >
           {generating ? 'Generating PDF...' : 'Generate PDF'}
@@ -46,7 +46,7 @@ export default function NavPreview({ navData, onBack, onPdfGenerated }) {
       {/* Scaled preview container */}
       <div className="flex justify-center">
         <div
-          className="border border-slate-600 rounded-lg shadow-2xl overflow-hidden"
+          className="border border-navy-600 rounded-lg shadow-lg overflow-hidden"
           style={{
             width: '890px',
             height: '630px',

@@ -216,17 +216,28 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <header className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-            NAV 1-Pager Generator
-          </h1>
-          <p className="text-slate-300 text-sm">
-            Fill in company data, optionally upload documents for AI extraction, then generate a PDF
-          </p>
-        </header>
+    <div className="min-h-screen bg-navy-900">
+      {/* Top Navigation Bar */}
+      <nav className="bg-navy-800 border-b border-navy-600">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-accent-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-display font-bold text-sm">E</span>
+              </div>
+              <h1 className="font-display font-semibold text-lg tracking-wide text-white">
+                NAV 1-Pager Generator
+              </h1>
+            </div>
+            <p className="text-navy-200 text-sm font-body hidden sm:block">
+              ERVE Investment Tools
+            </p>
+          </div>
+        </div>
+      </nav>
 
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-6 lg:px-8 py-10">
         {step === 'input' && (
           <>
             <NavInputForm
@@ -246,25 +257,25 @@ function App() {
             />
 
             {error && (
-              <div className="mt-4 p-3 bg-red-500/10 border border-red-500 rounded-lg max-w-5xl mx-auto">
-                <p className="text-red-400 text-sm">{error}</p>
+              <div className="mt-6 px-5 py-4 bg-red-500/10 border-l-4 border-red-500 rounded-lg max-w-5xl mx-auto">
+                <p className="text-red-300 text-sm font-body">{error}</p>
               </div>
             )}
 
             {processing && (
-              <div className="mt-4 max-w-5xl mx-auto">
+              <div className="mt-6 max-w-5xl mx-auto">
                 <ProcessingStatus message={statusMessage} progress={progress} />
               </div>
             )}
 
-            <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={handleProcessUploads}
                 disabled={processing || (!files.priorNav && !files.boardNotes && !files.financials)}
-                className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-8 py-3 rounded-lg font-display font-semibold text-sm tracking-wide transition-all ${
                   processing || (!files.priorNav && !files.boardNotes && !files.financials)
-                    ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 shadow-lg hover:shadow-xl'
+                    ? 'bg-navy-700 text-navy-400 cursor-not-allowed'
+                    : 'bg-navy-600 text-white hover:bg-navy-500 shadow-md hover:shadow-lg'
                 }`}
               >
                 {processing ? 'Processing...' : 'Process Uploads with AI'}
@@ -273,10 +284,10 @@ function App() {
               <button
                 onClick={handlePreview}
                 disabled={processing}
-                className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all ${
+                className={`px-8 py-3 rounded-lg font-display font-semibold text-sm tracking-wide transition-all ${
                   processing
-                    ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl'
+                    ? 'bg-navy-700 text-navy-400 cursor-not-allowed'
+                    : 'bg-accent-500 text-white hover:bg-accent-600 shadow-md hover:shadow-lg'
                 }`}
               >
                 Preview NAV 1-Pager
@@ -300,7 +311,7 @@ function App() {
             onReset={handleReset}
           />
         )}
-      </div>
+      </main>
     </div>
   )
 }

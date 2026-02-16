@@ -3,13 +3,25 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Source Sans 3', system-ui, sans-serif;
+  --color-navy: #1B2A4A;
+  --color-navy-light: #2C3E5A;
+  --color-bg-primary: #F8F9FA;
+  --color-bg-white: #FFFFFF;
+  --color-text-primary: #1A1A2E;
+  --color-text-secondary: #6B7280;
+  --color-accent: #E84393;
+  --color-accent-hover: #D63384;
+  --color-border: #E5E7EB;
+  --color-input-bg: #F3F4F6;
+  --color-input-border: #D1D5DB;
+  --color-success: #10B981;
+  --color-danger: #EF4444;
+
+  font-family: 'DM Sans', system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: dark;
-  color: #E8EBF0;
-  background-color: #0A1120;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;

@@ -71,9 +71,41 @@ export const applyProfileToNavData = (navData, profile) => {
   // Restore quarterly data (before rolling — App.jsx handles rolling)
   if (profile.quarterly_financials) {
     updated.quarterlyFinancials = profile.quarterly_financials
+
+    // Backfill historicalData for profiles saved before this feature existed
+    if (!updated.quarterlyFinancials.historicalData) {
+      const historical = {}
+      const cols = updated.quarterlyFinancials.columns || []
+      ;(updated.quarterlyFinancials.rows || []).forEach((row) => {
+        historical[row.metric] = {}
+        cols.forEach((col, i) => {
+          if (row.values[i]) historical[row.metric][col] = row.values[i]
+        })
+      })
+      updated.quarterlyFinancials.historicalData = historical
+    }
   }
   if (profile.valuation_waterfall) {
     updated.valuationWaterfall = profile.valuation_waterfall
+
+    // Backfill historicalData for profiles saved before this feature existed
+    if (!updated.valuationWaterfall.historicalData) {
+      const historical = {}
+      const labels = updated.valuationWaterfall.quarterLabels || []
+      const wfKeys = [
+        'comparableMultiple', 'arr', 'evPreDiscount', 'discountRate',
+        'evAfterDiscount', 'cash', 'equityValue', 'erveOwnership', 'compsBasedValue',
+      ]
+      wfKeys.forEach((key) => {
+        historical[key] = {}
+        labels.forEach((label, i) => {
+          if (updated.valuationWaterfall[key] && updated.valuationWaterfall[key][i]) {
+            historical[key][label] = updated.valuationWaterfall[key][i]
+          }
+        })
+      })
+      updated.valuationWaterfall.historicalData = historical
+    }
   }
   if (profile.methodology) updated.methodology = profile.methodology
   if (profile.valuation) updated.valuation = profile.valuation

@@ -147,6 +147,7 @@ export const getQuarterOptions = () => {
 /**
  * Roll quarterly financials data forward by a given number of quarters.
  * Uses label-based remapping so data stays aligned with the correct column headers.
+ * Preserves and consults historicalData so values that scroll off-screen aren't lost.
  */
 export const rollFinancialsForward = (financials, quartersToRoll, newColumns) => {
   if (quartersToRoll <= 0) {
@@ -154,22 +155,37 @@ export const rollFinancialsForward = (financials, quartersToRoll, newColumns) =>
   }
 
   const oldColumns = financials.columns
+  const historical = financials.historicalData || {}
+
+  // Snapshot current values into historicalData
+  const updatedHistorical = { ...historical }
+  financials.rows.forEach((row) => {
+    if (!updatedHistorical[row.metric]) updatedHistorical[row.metric] = {}
+    updatedHistorical[row.metric] = { ...updatedHistorical[row.metric] }
+    oldColumns.forEach((col, i) => {
+      if (row.values[i]) {
+        updatedHistorical[row.metric][col] = row.values[i]
+      }
+    })
+  })
 
   const rolledRows = financials.rows.map((row) => {
-    const dataMap = {}
+    const metricHistory = updatedHistorical[row.metric] || {}
+    const positionalMap = {}
     oldColumns.forEach((col, i) => {
-      dataMap[col] = row.values[i] || ''
+      positionalMap[col] = row.values[i] || ''
     })
-    const newValues = newColumns.map((col) => dataMap[col] || '')
+    const newValues = newColumns.map((col) => metricHistory[col] || positionalMap[col] || '')
     return { ...row, values: newValues }
   })
 
-  return { columns: newColumns, rows: rolledRows }
+  return { columns: newColumns, rows: rolledRows, historicalData: updatedHistorical }
 }
 
 /**
  * Roll valuation waterfall data forward by a given number of quarters.
  * Uses label-based remapping so data stays aligned with the correct column headers.
+ * Preserves and consults historicalData so values that scroll off-screen aren't lost.
  */
 export const rollWaterfallForward = (waterfall, quartersToRoll, newLabels) => {
   if (quartersToRoll <= 0) {
@@ -182,14 +198,29 @@ export const rollWaterfallForward = (waterfall, quartersToRoll, newLabels) => {
   ]
 
   const oldLabels = waterfall.quarterLabels
-  const rolled = { ...waterfall, quarterLabels: newLabels }
+  const historical = waterfall.historicalData || {}
+
+  // Snapshot current values into historicalData
+  const updatedHistorical = { ...historical }
+  for (const metric of metrics) {
+    if (!updatedHistorical[metric]) updatedHistorical[metric] = {}
+    updatedHistorical[metric] = { ...updatedHistorical[metric] }
+    oldLabels.forEach((label, i) => {
+      if (waterfall[metric][i]) {
+        updatedHistorical[metric][label] = waterfall[metric][i]
+      }
+    })
+  }
+
+  const rolled = { ...waterfall, quarterLabels: newLabels, historicalData: updatedHistorical }
 
   for (const metric of metrics) {
-    const dataMap = {}
+    const metricHistory = updatedHistorical[metric] || {}
+    const positionalMap = {}
     oldLabels.forEach((label, i) => {
-      dataMap[label] = waterfall[metric][i] || ''
+      positionalMap[label] = waterfall[metric][i] || ''
     })
-    rolled[metric] = newLabels.map((label) => dataMap[label] || '')
+    rolled[metric] = newLabels.map((label) => metricHistory[label] || positionalMap[label] || '')
   }
 
   return rolled

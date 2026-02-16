@@ -104,37 +104,61 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
   const handleQuarterChange = (newQuarter) => {
     const oldCols = navData.quarterlyFinancials.columns
     const newCols = generateFinancialColumns(newQuarter)
+    const finHistorical = navData.quarterlyFinancials.historicalData || {}
+
+    // Snapshot current values into historicalData before remapping
+    const updatedFinHistorical = { ...finHistorical }
+    navData.quarterlyFinancials.rows.forEach((row) => {
+      if (!updatedFinHistorical[row.metric]) updatedFinHistorical[row.metric] = {}
+      updatedFinHistorical[row.metric] = { ...updatedFinHistorical[row.metric] }
+      oldCols.forEach((col, i) => {
+        if (row.values[i]) {
+          updatedFinHistorical[row.metric][col] = row.values[i]
+        }
+      })
+    })
 
     const newRows = navData.quarterlyFinancials.rows.map((row) => {
-      const dataMap = {}
-      oldCols.forEach((col, i) => {
-        dataMap[col] = row.values[i] || ''
-      })
-      const newValues = newCols.map((col) => dataMap[col] || '')
+      const metricHistory = updatedFinHistorical[row.metric] || {}
+      const positionalMap = {}
+      oldCols.forEach((col, i) => { positionalMap[col] = row.values[i] || '' })
+      const newValues = newCols.map((col) => metricHistory[col] || positionalMap[col] || '')
       return { ...row, values: newValues }
     })
 
     const oldWfLabels = navData.valuationWaterfall.quarterLabels
     const newWfLabels = generateWaterfallLabels(newQuarter)
+    const wfHistorical = navData.valuationWaterfall.historicalData || {}
 
     const waterfallKeys = [
       'comparableMultiple', 'arr', 'evPreDiscount', 'discountRate',
       'evAfterDiscount', 'cash', 'equityValue', 'erveOwnership', 'compsBasedValue',
     ]
 
-    const newWaterfall = { ...navData.valuationWaterfall, quarterLabels: newWfLabels }
+    // Snapshot current waterfall values into historicalData
+    const updatedWfHistorical = { ...wfHistorical }
     waterfallKeys.forEach((key) => {
-      const dataMap = {}
+      if (!updatedWfHistorical[key]) updatedWfHistorical[key] = {}
+      updatedWfHistorical[key] = { ...updatedWfHistorical[key] }
       oldWfLabels.forEach((label, i) => {
-        dataMap[label] = navData.valuationWaterfall[key][i] || ''
+        if (navData.valuationWaterfall[key][i]) {
+          updatedWfHistorical[key][label] = navData.valuationWaterfall[key][i]
+        }
       })
-      newWaterfall[key] = newWfLabels.map((label) => dataMap[label] || '')
+    })
+
+    const newWaterfall = { ...navData.valuationWaterfall, quarterLabels: newWfLabels, historicalData: updatedWfHistorical }
+    waterfallKeys.forEach((key) => {
+      const keyHistory = updatedWfHistorical[key] || {}
+      const positionalMap = {}
+      oldWfLabels.forEach((label, i) => { positionalMap[label] = navData.valuationWaterfall[key][i] || '' })
+      newWaterfall[key] = newWfLabels.map((label) => keyHistory[label] || positionalMap[label] || '')
     })
 
     onNavDataChange({
       ...navData,
       currentNavQuarter: newQuarter,
-      quarterlyFinancials: { columns: newCols, rows: newRows },
+      quarterlyFinancials: { columns: newCols, rows: newRows, historicalData: updatedFinHistorical },
       valuationWaterfall: newWaterfall,
     })
   }
@@ -154,17 +178,43 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
   const updateWaterfallCell = (row, colIndex, value) => {
     const newArr = [...navData.valuationWaterfall[row]]
     newArr[colIndex] = value
-    updateNested(`valuationWaterfall.${row}`, newArr)
+
+    const colLabel = navData.valuationWaterfall.quarterLabels[colIndex]
+    const newHistorical = { ...navData.valuationWaterfall.historicalData }
+    if (!newHistorical[row]) newHistorical[row] = {}
+    newHistorical[row] = { ...newHistorical[row], [colLabel]: value }
+
+    const newWaterfall = {
+      ...navData.valuationWaterfall,
+      [row]: newArr,
+      historicalData: newHistorical,
+    }
+    onNavDataChange({ ...navData, valuationWaterfall: newWaterfall })
   }
 
   const updateFinancialCell = (rowIndex, colIndex, value) => {
+    const colLabel = navData.quarterlyFinancials.columns[colIndex]
+    const metric = navData.quarterlyFinancials.rows[rowIndex].metric
+
     const newRows = navData.quarterlyFinancials.rows.map((r, ri) => {
       if (ri !== rowIndex) return r
       const newValues = [...r.values]
       newValues[colIndex] = value
       return { ...r, values: newValues }
     })
-    updateNested('quarterlyFinancials.rows', newRows)
+
+    const newHistorical = { ...navData.quarterlyFinancials.historicalData }
+    if (!newHistorical[metric]) newHistorical[metric] = {}
+    newHistorical[metric] = { ...newHistorical[metric], [colLabel]: value }
+
+    onNavDataChange({
+      ...navData,
+      quarterlyFinancials: {
+        ...navData.quarterlyFinancials,
+        rows: newRows,
+        historicalData: newHistorical,
+      },
+    })
   }
 
   const updateExitCase = (scenario, field, value) => {

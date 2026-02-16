@@ -106,6 +106,7 @@ export const createEmptyNavData = (navQuarter = DEFAULT_NAV_QUARTER) => ({
       { metric: 'EBITDA', values: ['', '', '', '', '', '', '', ''] },
       { metric: 'FTEs', values: ['', '', '', '', '', '', '', ''] },
     ],
+    historicalData: {},
   },
 
   // Exit Cases / Opportunity Matrix
@@ -128,6 +129,7 @@ export const createEmptyNavData = (navQuarter = DEFAULT_NAV_QUARTER) => ({
     equityValue: ['', '', ''],
     erveOwnership: ['', '', ''],
     compsBasedValue: ['', '', ''],
+    historicalData: {},
   },
   methodology: '',
   valuation: '',

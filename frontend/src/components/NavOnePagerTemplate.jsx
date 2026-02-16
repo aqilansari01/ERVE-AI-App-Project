@@ -15,11 +15,14 @@ const COLORS = {
   border: '#D1D5DB',
 }
 
+const FONT_BODY = "Arial, Helvetica, sans-serif"
+const FONT_HEADER = "Georgia, 'Times New Roman', serif"
+
 const styles = {
   page: {
     width: '297mm',
     height: '210mm',
-    fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+    fontFamily: FONT_BODY,
     fontSize: '7.5pt',
     color: COLORS.darkText,
     backgroundColor: COLORS.white,
@@ -27,7 +30,7 @@ const styles = {
     position: 'relative',
     boxSizing: 'border-box',
     padding: '6mm 8mm 10mm 8mm',
-    lineHeight: '1.3',
+    lineHeight: '1.4',
   },
   header: {
     display: 'flex',
@@ -50,19 +53,23 @@ const styles = {
     flex: '0 0 auto',
     textAlign: 'right',
     fontSize: '7pt',
+    fontFamily: FONT_BODY,
   },
   companyName: {
     fontSize: '13pt',
     fontWeight: '700',
+    fontFamily: FONT_HEADER,
     marginBottom: '2px',
   },
   companyTagline: {
     fontSize: '8pt',
+    fontFamily: FONT_HEADER,
     opacity: 0.85,
   },
   navValuation: {
     fontSize: '9pt',
     fontWeight: '600',
+    fontFamily: FONT_BODY,
     backgroundColor: 'rgba(255,255,255,0.15)',
     padding: '3px 10px',
     borderRadius: '4px',
@@ -90,6 +97,7 @@ const styles = {
   sectionTitle: {
     fontSize: '8pt',
     fontWeight: '700',
+    fontFamily: FONT_BODY,
     color: COLORS.navy,
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
@@ -105,51 +113,57 @@ const styles = {
   th: {
     backgroundColor: COLORS.navy,
     color: COLORS.white,
-    padding: '2px 4px',
+    padding: '4px 6px',
     textAlign: 'left',
     fontWeight: '600',
     fontSize: '6.5pt',
-    whiteSpace: 'nowrap',
+    lineHeight: '1.4',
   },
   td: {
-    padding: '1.5px 4px',
+    padding: '4px 6px',
     borderBottom: `0.5px solid ${COLORS.medGray}`,
     verticalAlign: 'top',
+    lineHeight: '1.4',
   },
   tdLabel: {
-    padding: '1.5px 4px',
+    padding: '4px 6px',
     borderBottom: `0.5px solid ${COLORS.medGray}`,
     fontWeight: '600',
     fontSize: '6.5pt',
-    whiteSpace: 'nowrap',
     backgroundColor: COLORS.lightGray,
+    lineHeight: '1.4',
   },
   tdValue: {
-    padding: '1.5px 4px',
+    padding: '4px 6px',
     borderBottom: `0.5px solid ${COLORS.medGray}`,
     textAlign: 'right',
+    lineHeight: '1.4',
   },
-  ragDot: (color) => ({
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: color,
-    display: 'inline-block',
-    marginRight: '4px',
-    verticalAlign: 'middle',
-  }),
-  ragRow: {
+  ragSection: {
     display: 'flex',
-    flexWrap: 'wrap',
-    gap: '3mm',
-    padding: '1.5mm 0',
+    justifyContent: 'center',
+    gap: '5mm',
+    padding: '3mm 0',
   },
   ragItem: {
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
-    fontSize: '7pt',
-    minWidth: '60px',
+    gap: '2px',
+    minWidth: '45px',
   },
+  ragLabel: {
+    fontSize: '6.5pt',
+    fontWeight: '600',
+    color: COLORS.darkText,
+    textAlign: 'center',
+  },
+  ragIndicator: (color) => ({
+    width: '36px',
+    height: '15px',
+    borderRadius: '8px',
+    backgroundColor: color,
+  }),
   footer: {
     position: 'absolute',
     bottom: '3mm',
@@ -160,12 +174,12 @@ const styles = {
   },
   commentary: {
     fontSize: '7pt',
-    lineHeight: '1.4',
+    lineHeight: '1.5',
     whiteSpace: 'pre-wrap',
   },
   description: {
     fontSize: '7pt',
-    lineHeight: '1.35',
+    lineHeight: '1.4',
     color: COLORS.darkText,
     marginBottom: '2mm',
   },
@@ -223,7 +237,7 @@ const InvestmentSummaryTable = ({ data }) => {
 }
 
 const RagStatus = ({ data }) => (
-  <div style={styles.ragRow}>
+  <div style={styles.ragSection}>
     {[
       ['Financials', data.ragFinancials],
       ['Cash', data.ragCash],
@@ -233,8 +247,8 @@ const RagStatus = ({ data }) => (
       ['Overall', data.ragOverall],
     ].map(([label, status]) => (
       <div key={label} style={styles.ragItem}>
-        <span style={styles.ragDot(RAG_COLORS[status] || COLORS.green)} />
-        {label}
+        <span style={styles.ragLabel}>{label}</span>
+        <div style={styles.ragIndicator(RAG_COLORS[status] || COLORS.green)} />
       </div>
     ))}
   </div>
@@ -290,7 +304,7 @@ const ExitCasesTable = ({ data }) => (
           <td style={styles.tdValue}>{sc.evExit || '—'}</td>
           <td style={styles.tdValue}>{sc.moic || '—'}</td>
           <td style={styles.tdValue}>{sc.irr || '—'}</td>
-          <td style={{ ...styles.td, fontSize: '6pt', maxWidth: '80px' }}>{sc.keyFactors || '—'}</td>
+          <td style={{ ...styles.td, fontSize: '6pt', whiteSpace: 'normal', wordWrap: 'break-word' }}>{sc.keyFactors || '—'}</td>
         </tr>
       ))}
       <tr style={{ borderTop: `1px solid ${COLORS.navy}` }}>
@@ -337,7 +351,7 @@ const ValuationWaterfallTable = ({ data }) => {
         ))}
         <tr style={{ borderTop: `1.5px solid ${COLORS.navy}` }}>
           <td style={{ ...styles.tdLabel, fontWeight: '700' }}>Methodology</td>
-          <td style={styles.tdValue} colSpan={3}>{data.methodology || '—'}</td>
+          <td style={{ ...styles.tdValue, whiteSpace: 'normal', wordWrap: 'break-word' }} colSpan={3}>{data.methodology || '—'}</td>
         </tr>
         <tr>
           <td style={{ ...styles.tdLabel, fontWeight: '700' }}>Valuation</td>

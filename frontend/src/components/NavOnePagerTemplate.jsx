@@ -23,14 +23,14 @@ const styles = {
     width: '297mm',
     height: '210mm',
     fontFamily: FONT_BODY,
-    fontSize: '7.5pt',
+    fontSize: '7pt',
     color: COLORS.darkText,
     backgroundColor: COLORS.white,
     overflow: 'hidden',
     position: 'relative',
     boxSizing: 'border-box',
-    padding: '6mm 8mm 10mm 8mm',
-    lineHeight: '1.4',
+    padding: '5mm 7mm 8mm 7mm',
+    lineHeight: '1.3',
   },
   header: {
     display: 'flex',
@@ -38,8 +38,8 @@ const styles = {
     alignItems: 'flex-start',
     backgroundColor: COLORS.navy,
     color: COLORS.white,
-    padding: '5mm 6mm',
-    margin: '-6mm -8mm 4mm -8mm',
+    padding: '4mm 6mm',
+    margin: '-5mm -7mm 3mm -7mm',
     borderRadius: '0',
   },
   headerLeft: {
@@ -52,136 +52,142 @@ const styles = {
   headerRight: {
     flex: '0 0 auto',
     textAlign: 'right',
-    fontSize: '7pt',
+    fontSize: '6.5pt',
     fontFamily: FONT_BODY,
   },
   companyName: {
-    fontSize: '13pt',
+    fontSize: '12pt',
     fontWeight: '700',
     fontFamily: FONT_HEADER,
-    marginBottom: '2px',
+    marginBottom: '1px',
   },
   companyTagline: {
-    fontSize: '8pt',
+    fontSize: '7.5pt',
     fontFamily: FONT_HEADER,
     opacity: 0.85,
   },
   navValuation: {
-    fontSize: '9pt',
+    fontSize: '8pt',
     fontWeight: '600',
     fontFamily: FONT_BODY,
     backgroundColor: 'rgba(255,255,255,0.15)',
-    padding: '3px 10px',
-    borderRadius: '4px',
+    padding: '2px 8px',
+    borderRadius: '3px',
     display: 'inline-block',
   },
   columns: {
     display: 'flex',
-    gap: '5mm',
-    height: 'calc(100% - 28mm)',
+    gap: '4mm',
+    height: 'calc(100% - 22mm)',
   },
   leftCol: {
     flex: '1.1',
     display: 'flex',
     flexDirection: 'column',
-    gap: '3mm',
+    gap: '2mm',
     overflow: 'hidden',
   },
   rightCol: {
     flex: '0.9',
     display: 'flex',
     flexDirection: 'column',
-    gap: '3mm',
+    gap: '2mm',
     overflow: 'hidden',
   },
   sectionTitle: {
-    fontSize: '8pt',
+    fontSize: '7.5pt',
     fontWeight: '700',
     fontFamily: FONT_BODY,
     color: COLORS.navy,
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
-    marginBottom: '1.5mm',
+    marginBottom: '1mm',
     borderBottom: `1.5px solid ${COLORS.navy}`,
-    paddingBottom: '1mm',
+    paddingBottom: '0.5mm',
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
-    fontSize: '7pt',
+    fontSize: '6.5pt',
   },
   th: {
     backgroundColor: COLORS.navy,
     color: COLORS.white,
-    padding: '4px 6px',
+    padding: '2px 4px',
     textAlign: 'left',
     fontWeight: '600',
-    fontSize: '6.5pt',
-    lineHeight: '1.4',
+    fontSize: '6pt',
+    lineHeight: '1.3',
   },
   td: {
-    padding: '4px 6px',
+    padding: '2px 4px',
     borderBottom: `0.5px solid ${COLORS.medGray}`,
     verticalAlign: 'top',
-    lineHeight: '1.4',
+    lineHeight: '1.3',
   },
   tdLabel: {
-    padding: '4px 6px',
+    padding: '2px 4px',
     borderBottom: `0.5px solid ${COLORS.medGray}`,
     fontWeight: '600',
-    fontSize: '6.5pt',
+    fontSize: '6pt',
     backgroundColor: COLORS.lightGray,
-    lineHeight: '1.4',
+    lineHeight: '1.3',
+    whiteSpace: 'nowrap',
   },
   tdValue: {
-    padding: '4px 6px',
+    padding: '2px 4px',
     borderBottom: `0.5px solid ${COLORS.medGray}`,
     textAlign: 'right',
-    lineHeight: '1.4',
+    lineHeight: '1.3',
   },
   ragSection: {
     display: 'flex',
     justifyContent: 'center',
-    gap: '5mm',
-    padding: '3mm 0',
+    gap: '4mm',
+    padding: '1.5mm 0',
   },
   ragItem: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '2px',
-    minWidth: '45px',
+    gap: '1px',
+    minWidth: '40px',
   },
   ragLabel: {
-    fontSize: '6.5pt',
+    fontSize: '6pt',
     fontWeight: '600',
     color: COLORS.darkText,
     textAlign: 'center',
   },
   ragIndicator: (color) => ({
-    width: '36px',
-    height: '15px',
-    borderRadius: '8px',
+    width: '32px',
+    height: '14px',
+    borderRadius: '7px',
     backgroundColor: color,
   }),
   footer: {
     position: 'absolute',
-    bottom: '3mm',
-    right: '8mm',
-    fontSize: '7pt',
+    bottom: '2mm',
+    right: '7mm',
+    fontSize: '6.5pt',
     color: COLORS.mutedText,
     fontWeight: '600',
   },
   commentary: {
-    fontSize: '7pt',
-    lineHeight: '1.5',
+    fontSize: '6.5pt',
+    lineHeight: '1.35',
     whiteSpace: 'pre-wrap',
+    overflow: 'hidden',
+  },
+  commentaryWrapper: {
+    flex: '1',
+    overflow: 'hidden',
   },
   description: {
-    fontSize: '7pt',
-    lineHeight: '1.4',
+    fontSize: '6.5pt',
+    lineHeight: '1.3',
     color: COLORS.darkText,
-    marginBottom: '2mm',
+    marginBottom: '1mm',
   },
 }
 
@@ -262,7 +268,7 @@ const QuarterlyFinancialsTable = ({ data }) => {
         <tr>
           <th style={styles.th}></th>
           {columns.map((col, i) => (
-            <th key={i} style={{ ...styles.th, textAlign: 'right', fontSize: '6pt' }}>{col}</th>
+            <th key={i} style={{ ...styles.th, textAlign: 'right', fontSize: '5.5pt' }}>{col}</th>
           ))}
         </tr>
       </thead>
@@ -271,7 +277,7 @@ const QuarterlyFinancialsTable = ({ data }) => {
           <tr key={ri}>
             <td style={styles.tdLabel}>{row.metric}</td>
             {row.values.map((v, vi) => (
-              <td key={vi} style={{ ...styles.tdValue, fontSize: '6.5pt' }}>{v || '—'}</td>
+              <td key={vi} style={{ ...styles.tdValue, fontSize: '6pt' }}>{v || '—'}</td>
             ))}
           </tr>
         ))}
@@ -300,16 +306,16 @@ const ExitCasesTable = ({ data }) => (
       ].map(([label, sc]) => (
         <tr key={label}>
           <td style={styles.tdLabel}>{label}</td>
-          <td style={styles.td}>{sc.weight}</td>
-          <td style={styles.tdValue}>{sc.evExit || '—'}</td>
-          <td style={styles.tdValue}>{sc.moic || '—'}</td>
-          <td style={styles.tdValue}>{sc.irr || '—'}</td>
-          <td style={{ ...styles.td, fontSize: '6pt', whiteSpace: 'normal', wordWrap: 'break-word' }}>{sc.keyFactors || '—'}</td>
+          <td style={{ ...styles.td, fontSize: '6pt' }}>{sc.weight}</td>
+          <td style={{ ...styles.tdValue, fontSize: '6pt' }}>{sc.evExit || '—'}</td>
+          <td style={{ ...styles.tdValue, fontSize: '6pt' }}>{sc.moic || '—'}</td>
+          <td style={{ ...styles.tdValue, fontSize: '6pt' }}>{sc.irr || '—'}</td>
+          <td style={{ ...styles.td, fontSize: '5.5pt', whiteSpace: 'normal', wordWrap: 'break-word', maxWidth: '70px', lineHeight: '1.2' }}>{sc.keyFactors || '—'}</td>
         </tr>
       ))}
       <tr style={{ borderTop: `1px solid ${COLORS.navy}` }}>
         <td style={{ ...styles.tdLabel, fontWeight: '700' }} colSpan={2}>Blended</td>
-        <td style={styles.tdValue} colSpan={4}>{data.blendedExpectedReturn || '—'}</td>
+        <td style={{ ...styles.tdValue, fontSize: '6pt' }} colSpan={4}>{data.blendedExpectedReturn || '—'}</td>
       </tr>
     </tbody>
   </table>
@@ -345,21 +351,21 @@ const ValuationWaterfallTable = ({ data }) => {
           <tr key={ri}>
             <td style={styles.tdLabel}>{label}</td>
             {values.map((v, vi) => (
-              <td key={vi} style={styles.tdValue}>{v || '—'}</td>
+              <td key={vi} style={{ ...styles.tdValue, fontSize: '6pt' }}>{v || '—'}</td>
             ))}
           </tr>
         ))}
         <tr style={{ borderTop: `1.5px solid ${COLORS.navy}` }}>
           <td style={{ ...styles.tdLabel, fontWeight: '700' }}>Methodology</td>
-          <td style={{ ...styles.tdValue, whiteSpace: 'normal', wordWrap: 'break-word' }} colSpan={3}>{data.methodology || '—'}</td>
+          <td style={{ ...styles.tdValue, fontSize: '6pt', whiteSpace: 'normal', wordWrap: 'break-word' }} colSpan={3}>{data.methodology || '—'}</td>
         </tr>
         <tr>
           <td style={{ ...styles.tdLabel, fontWeight: '700' }}>Valuation</td>
-          <td style={styles.tdValue} colSpan={3}>{data.valuation || '—'}</td>
+          <td style={{ ...styles.tdValue, fontSize: '6pt' }} colSpan={3}>{data.valuation || '—'}</td>
         </tr>
         <tr>
           <td style={{ ...styles.tdLabel, fontWeight: '700' }}>Implied Multiple</td>
-          <td style={styles.tdValue} colSpan={3}>{data.impliedMultiple || '—'}</td>
+          <td style={{ ...styles.tdValue, fontSize: '6pt' }} colSpan={3}>{data.impliedMultiple || '—'}</td>
         </tr>
       </tbody>
     </table>
@@ -422,8 +428,8 @@ const NavOnePagerTemplate = forwardRef(({ navData }, ref) => {
 
         {/* RIGHT COLUMN */}
         <div style={styles.rightCol}>
-          {/* Company Update */}
-          <div>
+          {/* Company Update — flex:1 so it takes remaining space, with overflow hidden */}
+          <div style={styles.commentaryWrapper}>
             <div style={styles.sectionTitle}>Company Update</div>
             <div style={styles.commentary}>
               {data.companyUpdateCommentary || 'No company update provided.'}

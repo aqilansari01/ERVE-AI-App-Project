@@ -93,7 +93,7 @@ ${sources.join('\n\n')}
 
 Requirements:
 - If a PRIOR QUARTER NAV ANALYSIS is provided, use it as a reference for the tone, structure, format, and level of detail. Mirror how the prior quarter's commentary was written, but update with the current quarter's data and developments.
-- Write 5-8 concise bullet points (each 1-3 sentences), covering as many of these areas as the source materials support:
+- Write 5-7 concise bullet points (each 1-2 sentences), covering as many of these areas as the source materials support:
   1. Overall quarterly performance headline (ARR, revenue growth, YoY %)
   2. Key growth drivers and sales momentum
   3. Efficiency metrics (payback period, LTV/CAC, NRR, churn)
@@ -107,7 +107,7 @@ Requirements:
 - Each bullet point should be a standalone paragraph (no bullet characters or dashes, just line breaks between paragraphs)
 - Professional tone suitable for investor reporting
 - Do NOT include section headers or titles, just the content
-- Total length: 200-350 words`
+- Total length: 180-280 words`
 
   const message = await client.messages.create({
     model: 'claude-sonnet-4-20250514',

@@ -126,30 +126,42 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
     const oldWfLabels = navData.valuationWaterfall.quarterLabels
     const newWfLabels = generateWaterfallLabels(newQuarter)
     const wfHistorical = navData.valuationWaterfall.historicalData || {}
+    const wfRows = navData.valuationWaterfall.rows || []
 
-    const waterfallKeys = [
-      'comparableMultiple', 'arr', 'evPreDiscount', 'discountRate',
-      'evAfterDiscount', 'cash', 'equityValue', 'erveOwnership', 'compsBasedValue',
-    ]
-
-    // Snapshot current waterfall values into historicalData
+    // Snapshot current waterfall row values into historicalData (keyed by row label)
     const updatedWfHistorical = { ...wfHistorical }
-    waterfallKeys.forEach((key) => {
-      if (!updatedWfHistorical[key]) updatedWfHistorical[key] = {}
-      updatedWfHistorical[key] = { ...updatedWfHistorical[key] }
+    wfRows.forEach((row) => {
+      if (!updatedWfHistorical[row.label]) updatedWfHistorical[row.label] = {}
+      updatedWfHistorical[row.label] = { ...updatedWfHistorical[row.label] }
       oldWfLabels.forEach((label, i) => {
-        if (navData.valuationWaterfall[key][i]) {
-          updatedWfHistorical[key][label] = navData.valuationWaterfall[key][i]
+        if (row.values[i]) {
+          updatedWfHistorical[row.label][label] = row.values[i]
         }
       })
     })
 
-    const newWaterfall = { ...navData.valuationWaterfall, quarterLabels: newWfLabels, historicalData: updatedWfHistorical }
-    waterfallKeys.forEach((key) => {
-      const keyHistory = updatedWfHistorical[key] || {}
+    const newWfRows = wfRows.map((row) => {
+      const rowHistory = updatedWfHistorical[row.label] || {}
       const positionalMap = {}
-      oldWfLabels.forEach((label, i) => { positionalMap[label] = navData.valuationWaterfall[key][i] || '' })
-      newWaterfall[key] = newWfLabels.map((label) => keyHistory[label] || positionalMap[label] || '')
+      oldWfLabels.forEach((label, i) => { positionalMap[label] = row.values[i] || '' })
+      const newValues = newWfLabels.map((label) => rowHistory[label] || positionalMap[label] || '')
+      return { ...row, values: newValues }
+    })
+
+    // Roll methodology, valuation, impliedMultiple per-quarter arrays
+    const newWaterfall = { ...navData.valuationWaterfall, quarterLabels: newWfLabels, rows: newWfRows, historicalData: updatedWfHistorical }
+    ;['methodology', 'valuation', 'impliedMultiple'].forEach((field) => {
+      const values = navData.valuationWaterfall[field] || ['', '', '']
+      const fieldKey = `_${field}`
+      if (!updatedWfHistorical[fieldKey]) updatedWfHistorical[fieldKey] = {}
+      updatedWfHistorical[fieldKey] = { ...updatedWfHistorical[fieldKey] }
+      oldWfLabels.forEach((label, i) => {
+        if (values[i]) updatedWfHistorical[fieldKey][label] = values[i]
+      })
+      const fieldHistory = updatedWfHistorical[fieldKey] || {}
+      const positionalMap = {}
+      oldWfLabels.forEach((label, i) => { positionalMap[label] = values[i] || '' })
+      newWaterfall[field] = newWfLabels.map((label) => fieldHistory[label] || positionalMap[label] || '')
     })
 
     onNavDataChange({
@@ -172,21 +184,45 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
     onNavDataChange(newData)
   }
 
-  const updateWaterfallCell = (row, colIndex, value) => {
-    const newArr = [...navData.valuationWaterfall[row]]
-    newArr[colIndex] = value
-
+  const updateWaterfallCell = (rowIndex, colIndex, value) => {
     const colLabel = navData.valuationWaterfall.quarterLabels[colIndex]
-    const newHistorical = { ...navData.valuationWaterfall.historicalData }
-    if (!newHistorical[row]) newHistorical[row] = {}
-    newHistorical[row] = { ...newHistorical[row], [colLabel]: value }
+    const row = navData.valuationWaterfall.rows[rowIndex]
 
-    const newWaterfall = {
-      ...navData.valuationWaterfall,
-      [row]: newArr,
-      historicalData: newHistorical,
-    }
-    onNavDataChange({ ...navData, valuationWaterfall: newWaterfall })
+    const newRows = navData.valuationWaterfall.rows.map((r, ri) => {
+      if (ri !== rowIndex) return r
+      const newValues = [...r.values]
+      newValues[colIndex] = value
+      return { ...r, values: newValues }
+    })
+
+    const newHistorical = { ...navData.valuationWaterfall.historicalData }
+    if (!newHistorical[row.label]) newHistorical[row.label] = {}
+    newHistorical[row.label] = { ...newHistorical[row.label], [colLabel]: value }
+
+    onNavDataChange({
+      ...navData,
+      valuationWaterfall: { ...navData.valuationWaterfall, rows: newRows, historicalData: newHistorical },
+    })
+  }
+
+  const updateWaterfallLabel = (rowIndex, newLabel) => {
+    const newRows = navData.valuationWaterfall.rows.map((r, ri) => {
+      if (ri !== rowIndex) return r
+      return { ...r, label: newLabel }
+    })
+    updateNested('valuationWaterfall.rows', newRows)
+  }
+
+  const addWaterfallRow = (afterIndex) => {
+    const newRow = { label: 'New row', values: navData.valuationWaterfall.quarterLabels.map(() => '') }
+    const newRows = [...navData.valuationWaterfall.rows]
+    newRows.splice(afterIndex + 1, 0, newRow)
+    updateNested('valuationWaterfall.rows', newRows)
+  }
+
+  const removeWaterfallRow = (rowIndex) => {
+    const newRows = navData.valuationWaterfall.rows.filter((_, ri) => ri !== rowIndex)
+    updateNested('valuationWaterfall.rows', newRows)
   }
 
   const updateFinancialCell = (rowIndex, colIndex, value) => {
@@ -580,6 +616,7 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-gray-50">
+                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-3 py-2.5" style={{ width: '20px' }}></th>
                 <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-3 py-2.5"></th>
                 {navData.valuationWaterfall.quarterLabels.map((l, i) => (
                   <th key={i} className="text-right text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5">{l}</th>
@@ -587,25 +624,32 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
               </tr>
             </thead>
             <tbody>
-              {[
-                ['Comparable EV/Rev Multiple', 'comparableMultiple'],
-                ['ARR', 'arr'],
-                ['EV (pre-discount)', 'evPreDiscount'],
-                ['Discount Rate', 'discountRate'],
-                ['EV (after discount)', 'evAfterDiscount'],
-                ['Cash', 'cash'],
-                ['Equity Value', 'equityValue'],
-                ['ERVE Ownership', 'erveOwnership'],
-                ['Comps-based Value', 'compsBasedValue'],
-              ].map(([label, key]) => (
-                <tr key={key} className="border-t border-gray-100">
-                  <td className="text-gray-900 font-medium px-3 py-2 whitespace-nowrap text-xs">{label}</td>
-                  {navData.valuationWaterfall[key].map((v, ci) => (
+              {(navData.valuationWaterfall.rows || []).map((row, ri) => (
+                <tr key={ri} className="border-t border-gray-100 group">
+                  <td className="px-1 py-1 text-center" style={{ width: '20px' }}>
+                    <button
+                      type="button"
+                      onClick={() => removeWaterfallRow(ri)}
+                      className="text-gray-300 hover:text-red-500 text-xs leading-none opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Remove row"
+                    >
+                      &times;
+                    </button>
+                  </td>
+                  <td className="px-1.5 py-1">
+                    <input
+                      type="text"
+                      value={row.label}
+                      onChange={(e) => updateWaterfallLabel(ri, e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-xs text-gray-900 font-medium focus:border-[#E84393] focus:outline-none transition-colors"
+                    />
+                  </td>
+                  {row.values.map((v, ci) => (
                     <td key={ci} className="px-1.5 py-1">
                       <input
                         type="text"
                         value={v}
-                        onChange={(e) => updateWaterfallCell(key, ci, e.target.value)}
+                        onChange={(e) => updateWaterfallCell(ri, ci, e.target.value)}
                         className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-900 text-right focus:border-[#E84393] focus:outline-none transition-colors"
                         placeholder="--"
                       />
@@ -613,14 +657,41 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
                   ))}
                 </tr>
               ))}
+              {/* Methodology / Valuation / Implied Multiple — per-quarter */}
+              {['Methodology', 'Valuation', 'Implied Multiple'].map((label, mi) => {
+                const fieldKey = ['methodology', 'valuation', 'impliedMultiple'][mi]
+                return (
+                  <tr key={fieldKey} className="border-t border-gray-200">
+                    <td className="px-1 py-1" style={{ width: '20px' }}></td>
+                    <td className="text-gray-900 font-semibold px-3 py-2 whitespace-nowrap text-xs">{label}</td>
+                    {(navData.valuationWaterfall[fieldKey] || ['', '', '']).map((v, ci) => (
+                      <td key={ci} className="px-1.5 py-1">
+                        <input
+                          type="text"
+                          value={v}
+                          onChange={(e) => {
+                            const newArr = [...(navData.valuationWaterfall[fieldKey] || ['', '', ''])]
+                            newArr[ci] = e.target.value
+                            updateNested(`valuationWaterfall.${fieldKey}`, newArr)
+                          }}
+                          className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-900 text-right focus:border-[#E84393] focus:outline-none transition-colors"
+                          placeholder="—"
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
-        <div className="grid grid-cols-3 gap-4 mt-3">
-          <Field label="Methodology" value={navData.methodology} onChange={(v) => update('methodology', v)} placeholder="e.g., Comparable companies" />
-          <Field label="Valuation" value={navData.valuation} onChange={(v) => update('valuation', v)} placeholder="e.g., €19.0m" />
-          <Field label="Implied Multiple" value={navData.impliedMultiple} onChange={(v) => update('impliedMultiple', v)} placeholder="e.g., 5.2x" />
-        </div>
+        <button
+          type="button"
+          onClick={() => addWaterfallRow((navData.valuationWaterfall.rows || []).length - 1)}
+          className="mt-2 text-xs text-[#E84393] hover:text-[#D63384] font-medium transition-colors"
+        >
+          + Add Row
+        </button>
       </Section>
 
       {/* Company Update */}

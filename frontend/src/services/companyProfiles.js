@@ -43,9 +43,6 @@ export const extractProfileFromNavData = (navData) => {
   profile.nav_as_of_quarter = navData.currentNavQuarter || ''
   profile.quarterly_financials = navData.quarterlyFinancials || null
   profile.valuation_waterfall = navData.valuationWaterfall || null
-  profile.methodology = navData.methodology || ''
-  profile.valuation = navData.valuation || ''
-  profile.implied_multiple = navData.impliedMultiple || ''
   profile.current_quarter_nav = navData.currentQuarterNav || ''
   profile.prior_quarter_nav = navData.priorQuarterNav || ''
   profile.monthly_burn = navData.monthlyBurn || ''
@@ -53,6 +50,53 @@ export const extractProfileFromNavData = (navData) => {
   profile.company_update_commentary = navData.companyUpdateCommentary || ''
 
   return profile
+}
+
+/**
+ * Migrate old fixed-key waterfall format to the new rows-based format.
+ * Old format had keys like comparableMultiple, arr, etc.
+ * New format uses a rows array of { label, values } objects.
+ */
+const migrateWaterfallIfNeeded = (wf, standaloneMethodology, standaloneValuation, standaloneImpliedMultiple) => {
+  if (wf && wf.rows) return wf // Already new format
+  if (!wf) return null
+
+  const oldKeys = [
+    ['comparableMultiple', 'Comparable EV/Rev Multiple'],
+    ['arr', 'ARR'],
+    ['evPreDiscount', 'Enterprise value pre-discount'],
+    ['discountRate', 'Discount rate applied to multiple'],
+    ['evAfterDiscount', 'Enterprise value after discount'],
+    ['cash', 'Cash'],
+    ['equityValue', 'Equity value'],
+    ['erveOwnership', 'ERVE ownership'],
+    ['compsBasedValue', 'Comps-based value of ERVE equity'],
+  ]
+
+  const rows = oldKeys
+    .filter(([key]) => wf[key])
+    .map(([key, label]) => ({
+      label,
+      values: wf[key] || ['', '', ''],
+    }))
+
+  // Migrate historicalData keys from old metric keys to new row labels
+  const oldHistorical = wf.historicalData || {}
+  const migratedHistorical = {}
+  oldKeys.forEach(([key, label]) => {
+    if (oldHistorical[key]) {
+      migratedHistorical[label] = oldHistorical[key]
+    }
+  })
+
+  return {
+    quarterLabels: wf.quarterLabels || ['', '', ''],
+    rows,
+    methodology: [standaloneMethodology || '', '', ''],
+    valuation: [standaloneValuation || '', '', ''],
+    impliedMultiple: [standaloneImpliedMultiple || '', '', ''],
+    historicalData: migratedHistorical,
+  }
 }
 
 export const applyProfileToNavData = (navData, profile) => {
@@ -87,30 +131,27 @@ export const applyProfileToNavData = (navData, profile) => {
     }
   }
   if (profile.valuation_waterfall) {
-    updated.valuationWaterfall = profile.valuation_waterfall
+    // Migrate old format to new rows-based format if needed
+    updated.valuationWaterfall = migrateWaterfallIfNeeded(
+      profile.valuation_waterfall,
+      profile.methodology,
+      profile.valuation,
+      profile.implied_multiple,
+    )
 
     // Backfill historicalData for profiles saved before this feature existed
-    if (!updated.valuationWaterfall.historicalData) {
+    if (updated.valuationWaterfall && !updated.valuationWaterfall.historicalData) {
       const historical = {}
       const labels = updated.valuationWaterfall.quarterLabels || []
-      const wfKeys = [
-        'comparableMultiple', 'arr', 'evPreDiscount', 'discountRate',
-        'evAfterDiscount', 'cash', 'equityValue', 'erveOwnership', 'compsBasedValue',
-      ]
-      wfKeys.forEach((key) => {
-        historical[key] = {}
+      ;(updated.valuationWaterfall.rows || []).forEach((row) => {
+        historical[row.label] = {}
         labels.forEach((label, i) => {
-          if (updated.valuationWaterfall[key] && updated.valuationWaterfall[key][i]) {
-            historical[key][label] = updated.valuationWaterfall[key][i]
-          }
+          if (row.values[i]) historical[row.label][label] = row.values[i]
         })
       })
       updated.valuationWaterfall.historicalData = historical
     }
   }
-  if (profile.methodology) updated.methodology = profile.methodology
-  if (profile.valuation) updated.valuation = profile.valuation
-  if (profile.implied_multiple) updated.impliedMultiple = profile.implied_multiple
   if (profile.current_quarter_nav) updated.currentQuarterNav = profile.current_quarter_nav
   if (profile.prior_quarter_nav) updated.priorQuarterNav = profile.prior_quarter_nav
   if (profile.monthly_burn) updated.monthlyBurn = profile.monthly_burn
@@ -150,9 +191,6 @@ const toDbRow = (profile) => ({
   nav_as_of_quarter: profile.nav_as_of_quarter,
   quarterly_financials: profile.quarterly_financials,
   valuation_waterfall: profile.valuation_waterfall,
-  methodology: profile.methodology,
-  valuation: profile.valuation,
-  implied_multiple: profile.implied_multiple,
   current_quarter_nav: profile.current_quarter_nav,
   prior_quarter_nav: profile.prior_quarter_nav,
   monthly_burn: profile.monthly_burn,
@@ -190,9 +228,9 @@ const fromDbRow = (row) => ({
   nav_as_of_quarter: row.nav_as_of_quarter || '',
   quarterly_financials: row.quarterly_financials || null,
   valuation_waterfall: row.valuation_waterfall || null,
-  methodology: row.methodology || '',
-  valuation: row.valuation || '',
-  implied_multiple: row.implied_multiple || '',
+  methodology: row.methodology || '',      // kept for migration of old profiles
+  valuation: row.valuation || '',          // kept for migration of old profiles
+  implied_multiple: row.implied_multiple || '', // kept for migration of old profiles
   current_quarter_nav: row.current_quarter_nav || '',
   prior_quarter_nav: row.prior_quarter_nav || '',
   monthly_burn: row.monthly_burn || '',

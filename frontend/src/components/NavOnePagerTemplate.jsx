@@ -349,17 +349,7 @@ const ExitCasesTable = ({ data }) => (
 const ValuationWaterfallTable = ({ data }) => {
   const wf = data.valuationWaterfall
   const labels = wf.quarterLabels
-  const rowDefs = [
-    ['Comparable EV/Rev Multiple', wf.comparableMultiple],
-    ['ARR', wf.arr],
-    ['Enterprise Value (pre-discount)', wf.evPreDiscount],
-    ['Discount Rate', wf.discountRate],
-    ['Enterprise Value (after discount)', wf.evAfterDiscount],
-    ['Cash', wf.cash],
-    ['Equity Value', wf.equityValue],
-    ['ERVE Ownership', wf.erveOwnership],
-    ['Comps-based Value', wf.compsBasedValue],
-  ]
+  const rows = wf.rows || []
 
   return (
     <table style={styles.table}>
@@ -372,25 +362,31 @@ const ValuationWaterfallTable = ({ data }) => {
         </tr>
       </thead>
       <tbody>
-        {rowDefs.map(([label, values], ri) => (
+        {rows.map((row, ri) => (
           <tr key={ri}>
-            <td style={styles.tdLabel}>{label}</td>
-            {values.map((v, vi) => (
+            <td style={styles.tdLabel}>{row.label}</td>
+            {row.values.map((v, vi) => (
               <td key={vi} style={{ ...styles.tdValue, fontSize: '6pt' }}>{v || '—'}</td>
             ))}
           </tr>
         ))}
         <tr style={{ borderTop: `1.5px solid ${COLORS.navy}` }}>
           <td style={{ ...styles.tdLabel, fontWeight: '700' }}>Methodology</td>
-          <td style={{ ...styles.tdValue, fontSize: '6pt', whiteSpace: 'normal', wordWrap: 'break-word' }} colSpan={3}>{data.methodology || '—'}</td>
+          {(wf.methodology || ['', '', '']).map((v, i) => (
+            <td key={i} style={{ ...styles.tdValue, fontSize: '6pt', whiteSpace: 'normal', wordWrap: 'break-word' }}>{v || '—'}</td>
+          ))}
         </tr>
         <tr>
           <td style={{ ...styles.tdLabel, fontWeight: '700' }}>Valuation</td>
-          <td style={{ ...styles.tdValue, fontSize: '6pt' }} colSpan={3}>{data.valuation || '—'}</td>
+          {(wf.valuation || ['', '', '']).map((v, i) => (
+            <td key={i} style={{ ...styles.tdValue, fontSize: '6pt' }}>{v || '—'}</td>
+          ))}
         </tr>
         <tr>
           <td style={{ ...styles.tdLabel, fontWeight: '700' }}>Implied Multiple</td>
-          <td style={{ ...styles.tdValue, fontSize: '6pt' }} colSpan={3}>{data.impliedMultiple || '—'}</td>
+          {(wf.impliedMultiple || ['', '', '']).map((v, i) => (
+            <td key={i} style={{ ...styles.tdValue, fontSize: '6pt' }}>{v || '—'}</td>
+          ))}
         </tr>
       </tbody>
     </table>

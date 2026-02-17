@@ -186,42 +186,64 @@ export const rollFinancialsForward = (financials, quartersToRoll, newColumns) =>
  * Roll valuation waterfall data forward by a given number of quarters.
  * Uses label-based remapping so data stays aligned with the correct column headers.
  * Preserves and consults historicalData so values that scroll off-screen aren't lost.
+ *
+ * Supports the flexible rows-based structure where waterfall.rows is an array
+ * of { label, values } objects, and methodology/valuation/impliedMultiple are
+ * per-quarter arrays.
  */
 export const rollWaterfallForward = (waterfall, quartersToRoll, newLabels) => {
   if (quartersToRoll <= 0) {
     return { ...waterfall, quarterLabels: newLabels }
   }
 
-  const metrics = [
-    'comparableMultiple', 'arr', 'evPreDiscount', 'discountRate',
-    'evAfterDiscount', 'cash', 'equityValue', 'erveOwnership', 'compsBasedValue',
-  ]
-
   const oldLabels = waterfall.quarterLabels
   const historical = waterfall.historicalData || {}
+  const rows = waterfall.rows || []
 
-  // Snapshot current values into historicalData
+  // Snapshot current row values into historicalData (keyed by row label)
   const updatedHistorical = { ...historical }
-  for (const metric of metrics) {
-    if (!updatedHistorical[metric]) updatedHistorical[metric] = {}
-    updatedHistorical[metric] = { ...updatedHistorical[metric] }
+  rows.forEach((row) => {
+    if (!updatedHistorical[row.label]) updatedHistorical[row.label] = {}
+    updatedHistorical[row.label] = { ...updatedHistorical[row.label] }
     oldLabels.forEach((label, i) => {
-      if (waterfall[metric][i]) {
-        updatedHistorical[metric][label] = waterfall[metric][i]
+      if (row.values[i]) {
+        updatedHistorical[row.label][label] = row.values[i]
       }
     })
-  }
+  })
 
-  const rolled = { ...waterfall, quarterLabels: newLabels, historicalData: updatedHistorical }
-
-  for (const metric of metrics) {
-    const metricHistory = updatedHistorical[metric] || {}
+  // Roll the flexible rows
+  const rolledRows = rows.map((row) => {
+    const rowHistory = updatedHistorical[row.label] || {}
     const positionalMap = {}
     oldLabels.forEach((label, i) => {
-      positionalMap[label] = waterfall[metric][i] || ''
+      positionalMap[label] = row.values[i] || ''
     })
-    rolled[metric] = newLabels.map((label) => metricHistory[label] || positionalMap[label] || '')
-  }
+    const newValues = newLabels.map((label) => rowHistory[label] || positionalMap[label] || '')
+    return { ...row, values: newValues }
+  })
 
+  const rolled = { ...waterfall, quarterLabels: newLabels, rows: rolledRows, historicalData: updatedHistorical }
+
+  // Roll methodology, valuation, impliedMultiple arrays the same way
+  ;['methodology', 'valuation', 'impliedMultiple'].forEach((field) => {
+    const values = waterfall[field] || ['', '', '']
+    const fieldKey = `_${field}`
+    if (!updatedHistorical[fieldKey]) updatedHistorical[fieldKey] = {}
+    updatedHistorical[fieldKey] = { ...updatedHistorical[fieldKey] }
+    oldLabels.forEach((label, i) => {
+      if (values[i]) {
+        updatedHistorical[fieldKey][label] = values[i]
+      }
+    })
+    const fieldHistory = updatedHistorical[fieldKey] || {}
+    const positionalMap = {}
+    oldLabels.forEach((label, i) => {
+      positionalMap[label] = values[i] || ''
+    })
+    rolled[field] = newLabels.map((label) => fieldHistory[label] || positionalMap[label] || '')
+  })
+
+  rolled.historicalData = updatedHistorical
   return rolled
 }

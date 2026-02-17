@@ -165,8 +165,8 @@ const styles = {
   },
   ragSection: {
     display: 'flex',
-    justifyContent: 'flex-start',
-    gap: '6mm',
+    justifyContent: 'center',
+    gap: '10mm',
     padding: '2mm 0',
   },
   ragItem: {
@@ -315,12 +315,12 @@ const ExitCasesTable = ({ data }) => (
   <table style={styles.table}>
     <thead>
       <tr>
-        <th style={styles.th}>Scenario</th>
-        <th style={styles.th}>Wt</th>
-        <th style={{ ...styles.th, textAlign: 'right' }}>EV/Exit</th>
-        <th style={{ ...styles.th, textAlign: 'right' }}>MOIC</th>
-        <th style={{ ...styles.th, textAlign: 'right' }}>IRR</th>
-        <th style={styles.th}>Key Factors</th>
+        <th style={{ ...styles.th, width: '8%' }}>Scenario</th>
+        <th style={{ ...styles.th, width: '8%' }}>Weighting</th>
+        <th style={{ ...styles.th, textAlign: 'right', width: '12%' }}>EV/Exit</th>
+        <th style={{ ...styles.th, textAlign: 'right', width: '7%' }}>MOIC</th>
+        <th style={{ ...styles.th, textAlign: 'right', width: '7%' }}>IRR</th>
+        <th style={{ ...styles.th, width: '58%' }}>Key Factors</th>
       </tr>
     </thead>
     <tbody>
@@ -330,12 +330,12 @@ const ExitCasesTable = ({ data }) => (
         ['Low', data.exitCases.low],
       ].map(([label, sc]) => (
         <tr key={label}>
-          <td style={styles.tdLabel}>{label}</td>
-          <td style={{ ...styles.td, fontSize: '6pt' }}>{sc.weight}</td>
-          <td style={{ ...styles.tdValue, fontSize: '6pt' }}>{sc.evExit || '—'}</td>
-          <td style={{ ...styles.tdValue, fontSize: '6pt' }}>{sc.moic || '—'}</td>
-          <td style={{ ...styles.tdValue, fontSize: '6pt' }}>{sc.irr || '—'}</td>
-          <td style={{ ...styles.td, fontSize: '6pt', whiteSpace: 'normal', wordBreak: 'break-word', maxWidth: '120px', lineHeight: '1.2' }}>{sc.keyFactors || '—'}</td>
+          <td style={{ ...styles.tdLabel, width: '8%' }}>{label}</td>
+          <td style={{ ...styles.td, fontSize: '6pt', width: '8%' }}>{sc.weight}</td>
+          <td style={{ ...styles.tdValue, fontSize: '6pt', width: '12%' }}>{sc.evExit || '—'}</td>
+          <td style={{ ...styles.tdValue, fontSize: '6pt', width: '7%' }}>{sc.moic || '—'}</td>
+          <td style={{ ...styles.tdValue, fontSize: '6pt', width: '7%' }}>{sc.irr || '—'}</td>
+          <td style={{ ...styles.td, fontSize: '6pt', whiteSpace: 'normal', wordBreak: 'break-word', width: '58%', lineHeight: '1.2' }}>{sc.keyFactors || '—'}</td>
         </tr>
       ))}
       <tr style={{ borderTop: `1px solid ${COLORS.navy}` }}>

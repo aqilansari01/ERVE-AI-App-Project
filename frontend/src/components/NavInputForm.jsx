@@ -444,7 +444,7 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
 
       {/* RAG Status */}
       <Section title="RAG Status" defaultOpen={false}>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="flex justify-center gap-10 flex-wrap">
           {[
             ['Financials', 'ragFinancials'],
             ['Cash', 'ragCash'],
@@ -453,13 +453,14 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
             ['Governance', 'ragGovernance'],
             ['Overall', 'ragOverall'],
           ].map(([label, field]) => (
-            <Select
-              key={field}
-              label={label}
-              value={navData[field]}
-              onChange={(v) => update(field, v)}
-              options={RAG_OPTIONS}
-            />
+            <div key={field} className="flex flex-col items-center min-w-[80px]">
+              <Select
+                label={label}
+                value={navData[field]}
+                onChange={(v) => update(field, v)}
+                options={RAG_OPTIONS}
+              />
+            </div>
           ))}
         </div>
       </Section>
@@ -515,12 +516,12 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-gray-50">
-                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-3 py-2.5">Scenario</th>
-                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5 w-16">Wt</th>
-                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5">EV/Exit</th>
-                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5">MOIC</th>
-                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5">IRR</th>
-                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5">Key Factors</th>
+                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-3 py-2.5" style={{ width: '8%' }}>Scenario</th>
+                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5" style={{ width: '8%' }}>Weighting</th>
+                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5" style={{ width: '12%' }}>EV/Exit</th>
+                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5" style={{ width: '7%' }}>MOIC</th>
+                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5" style={{ width: '7%' }}>IRR</th>
+                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5" style={{ width: '58%' }}>Key Factors</th>
               </tr>
             </thead>
             <tbody>
@@ -530,8 +531,8 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
                 ['Low', 'low'],
               ].map(([label, key]) => (
                 <tr key={key} className="border-t border-gray-100">
-                  <td className="text-gray-900 font-medium px-3 py-2 whitespace-nowrap">{label}</td>
-                  <td className="px-1.5 py-1">
+                  <td className="text-gray-900 font-medium px-3 py-2 whitespace-nowrap" style={{ width: '8%' }}>{label}</td>
+                  <td className="px-1.5 py-1" style={{ width: '8%' }}>
                     <input
                       type="text"
                       value={navData.exitCases[key].weight}
@@ -551,7 +552,7 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
                       />
                     </td>
                   ))}
-                  <td className="px-1.5 py-1">
+                  <td className="px-1.5 py-1" style={{ width: '58%' }}>
                     <input
                       type="text"
                       value={navData.exitCases[key].keyFactors}

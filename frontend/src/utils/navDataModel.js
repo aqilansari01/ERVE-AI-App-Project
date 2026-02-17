@@ -96,6 +96,9 @@ export const createEmptyNavData = (navQuarter = DEFAULT_NAV_QUARTER) => ({
   ragGovernance: 'Green',
   ragOverall: 'Green',
 
+  // Quarterly Financials currency/unit label (e.g. "USD'm", "EUR'm", "€m")
+  financialsCurrencyUnit: '',
+
   // Quarterly Financials (AI-extracted or manual)
   quarterlyFinancials: {
     columns: generateFinancialColumns(navQuarter),

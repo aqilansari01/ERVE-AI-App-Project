@@ -291,7 +291,7 @@ const QuarterlyFinancialsTable = ({ data }) => {
     <table style={styles.table}>
       <thead>
         <tr>
-          <th style={styles.th}></th>
+          <th style={styles.th}>{data.financialsCurrencyUnit || ''}</th>
           {columns.map((col, i) => (
             <th key={i} style={{ ...styles.th, textAlign: 'right', fontSize: '5.5pt' }}>{col}</th>
           ))}

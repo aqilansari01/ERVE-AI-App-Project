@@ -473,7 +473,15 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-gray-50">
-                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-3 py-2.5"></th>
+                <th className="text-left px-2 py-1.5">
+                  <input
+                    type="text"
+                    value={navData.financialsCurrencyUnit || ''}
+                    onChange={(e) => update('financialsCurrencyUnit', e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-700 focus:border-[#E84393] focus:outline-none transition-colors"
+                    placeholder="e.g. USD'm"
+                  />
+                </th>
                 {navData.quarterlyFinancials.columns.map((col, i) => (
                   <th key={i} className="text-right text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5 whitespace-nowrap">{col}</th>
                 ))}
@@ -508,6 +516,7 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
             <thead>
               <tr className="bg-gray-50">
                 <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-3 py-2.5">Scenario</th>
+                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5 w-16">Wt</th>
                 <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5">EV/Exit</th>
                 <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5">MOIC</th>
                 <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5">IRR</th>
@@ -516,12 +525,21 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
             </thead>
             <tbody>
               {[
-                ['High (20%)', 'high'],
-                ['Base (60%)', 'base'],
-                ['Low (20%)', 'low'],
+                ['High', 'high'],
+                ['Base', 'base'],
+                ['Low', 'low'],
               ].map(([label, key]) => (
                 <tr key={key} className="border-t border-gray-100">
                   <td className="text-gray-900 font-medium px-3 py-2 whitespace-nowrap">{label}</td>
+                  <td className="px-1.5 py-1">
+                    <input
+                      type="text"
+                      value={navData.exitCases[key].weight}
+                      onChange={(e) => updateExitCase(key, 'weight', e.target.value)}
+                      className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-900 focus:border-[#E84393] focus:outline-none transition-colors"
+                      placeholder="e.g. 20%"
+                    />
+                  </td>
                   {['evExit', 'moic', 'irr'].map((field) => (
                     <td key={field} className="px-1.5 py-1">
                       <input

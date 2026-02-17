@@ -24,6 +24,7 @@ const PROFILE_FIELDS = [
   'monthlyBurnCurrency',
   'lastPreMoneyCurrency',
   'lastPostMoneyCurrency',
+  'financialsCurrencyUnit',
 ]
 
 // Exit cases are semi-static, saved as JSON
@@ -143,6 +144,7 @@ const toDbRow = (profile) => ({
   monthly_burn_currency: profile.monthlyBurnCurrency || '',
   last_pre_money_currency: profile.lastPreMoneyCurrency || '',
   last_post_money_currency: profile.lastPostMoneyCurrency || '',
+  financials_currency_unit: profile.financialsCurrencyUnit || '',
   exit_cases: profile.exit_cases,
   blended_expected_return: profile.blended_expected_return,
   nav_as_of_quarter: profile.nav_as_of_quarter,
@@ -182,6 +184,7 @@ const fromDbRow = (row) => ({
   monthlyBurnCurrency: row.monthly_burn_currency || '',
   lastPreMoneyCurrency: row.last_pre_money_currency || '',
   lastPostMoneyCurrency: row.last_post_money_currency || '',
+  financialsCurrencyUnit: row.financials_currency_unit || '',
   exit_cases: row.exit_cases || null,
   blended_expected_return: row.blended_expected_return || '',
   nav_as_of_quarter: row.nav_as_of_quarter || '',

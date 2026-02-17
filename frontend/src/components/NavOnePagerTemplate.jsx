@@ -2,20 +2,37 @@ import { forwardRef } from 'react'
 import { getCurrencySymbol, buildProposedNavLine } from '../utils/navDataModel'
 
 const COLORS = {
-  navy: '#1B2A4A',
-  navyLight: '#2C3E5A',
+  // Primary
+  navy: '#0F1B2D',
+  navyMid: '#1A2B45',
+  navyLight: '#243B5C',
+
+  // Backgrounds
   white: '#FFFFFF',
-  lightGray: '#F5F6F8',
-  medGray: '#E8EAF0',
-  darkText: '#1A1A2E',
-  mutedText: '#6B7280',
-  green: '#22C55E',
+  offWhite: '#FAFBFC',
+  lightGray: '#F0F2F5',
+
+  // Text
+  darkText: '#111827',
+  bodyText: '#374151',
+  mutedText: '#9CA3AF',
+
+  // Table
+  headerBg: '#0F1B2D',
+  headerText: '#FFFFFF',
+  border: '#E5E7EB',
+  borderDark: '#1A2B45',
+
+  // RAG
+  green: '#10B981',
   amber: '#F59E0B',
   red: '#EF4444',
-  border: '#D1D5DB',
+
+  // Accent
+  accent: '#2563EB',
 }
 
-const FONT_BODY = "Arial, Helvetica, sans-serif"
+const FONT_BODY = "Arial, 'Helvetica Neue', Helvetica, sans-serif"
 const FONT_HEADER = "Georgia, 'Times New Roman', serif"
 
 const styles = {
@@ -30,7 +47,7 @@ const styles = {
     position: 'relative',
     boxSizing: 'border-box',
     padding: '5mm 7mm 8mm 7mm',
-    lineHeight: '1.3',
+    lineHeight: '1.45',
   },
   header: {
     display: 'flex',
@@ -56,7 +73,7 @@ const styles = {
     fontFamily: FONT_BODY,
   },
   companyName: {
-    fontSize: '12pt',
+    fontSize: '14pt',
     fontWeight: '700',
     fontFamily: FONT_HEADER,
     marginBottom: '1px',
@@ -70,9 +87,9 @@ const styles = {
     fontSize: '8pt',
     fontWeight: '600',
     fontFamily: FONT_BODY,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    padding: '2px 8px',
-    borderRadius: '3px',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    padding: '3px 10px',
+    borderRadius: '4px',
     display: 'inline-block',
   },
   columns: {
@@ -102,7 +119,7 @@ const styles = {
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
     marginBottom: '1mm',
-    borderBottom: `1.5px solid ${COLORS.navy}`,
+    borderBottom: `1px solid ${COLORS.border}`,
     paddingBottom: '0.5mm',
   },
   table: {
@@ -111,59 +128,66 @@ const styles = {
     fontSize: '6.5pt',
   },
   th: {
-    backgroundColor: COLORS.navy,
-    color: COLORS.white,
-    padding: '2px 4px',
+    backgroundColor: COLORS.headerBg,
+    color: COLORS.headerText,
+    padding: '3px 6px',
     textAlign: 'left',
     fontWeight: '600',
     fontSize: '6pt',
     lineHeight: '1.3',
+    letterSpacing: '0.3px',
+    textTransform: 'uppercase',
   },
   td: {
-    padding: '2px 4px',
-    borderBottom: `0.5px solid ${COLORS.medGray}`,
+    padding: '3px 6px',
+    borderBottom: `0.5px solid ${COLORS.border}`,
     verticalAlign: 'top',
     lineHeight: '1.3',
+    color: COLORS.bodyText,
   },
   tdLabel: {
-    padding: '2px 4px',
-    borderBottom: `0.5px solid ${COLORS.medGray}`,
-    fontWeight: '600',
+    padding: '3px 6px',
+    borderBottom: `0.5px solid ${COLORS.border}`,
+    fontWeight: '500',
     fontSize: '6pt',
     backgroundColor: COLORS.lightGray,
     lineHeight: '1.3',
     whiteSpace: 'nowrap',
+    color: COLORS.darkText,
   },
   tdValue: {
-    padding: '2px 4px',
-    borderBottom: `0.5px solid ${COLORS.medGray}`,
+    padding: '3px 6px',
+    borderBottom: `0.5px solid ${COLORS.border}`,
     textAlign: 'right',
     lineHeight: '1.3',
+    backgroundColor: COLORS.white,
+    color: COLORS.bodyText,
   },
   ragSection: {
     display: 'flex',
-    justifyContent: 'center',
-    gap: '4mm',
-    padding: '1.5mm 0',
+    justifyContent: 'flex-start',
+    gap: '6mm',
+    padding: '2mm 0',
   },
   ragItem: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '1px',
-    minWidth: '40px',
+    minWidth: '50px',
   },
   ragLabel: {
-    fontSize: '6pt',
+    fontSize: '6.5pt',
     fontWeight: '600',
     color: COLORS.darkText,
     textAlign: 'center',
+    marginBottom: '2px',
   },
   ragIndicator: (color) => ({
-    width: '32px',
+    width: '36px',
     height: '14px',
     borderRadius: '7px',
     backgroundColor: color,
+    display: 'block',
   }),
   footer: {
     position: 'absolute',
@@ -172,12 +196,14 @@ const styles = {
     fontSize: '6.5pt',
     color: COLORS.mutedText,
     fontWeight: '600',
+    fontStyle: 'italic',
   },
   commentary: {
     fontSize: '6.5pt',
-    lineHeight: '1.35',
+    lineHeight: '1.5',
     whiteSpace: 'pre-wrap',
     overflow: 'hidden',
+    color: COLORS.bodyText,
   },
   commentaryWrapper: {
     marginBottom: '2mm',
@@ -185,7 +211,7 @@ const styles = {
   description: {
     fontSize: '6.5pt',
     lineHeight: '1.3',
-    color: COLORS.darkText,
+    color: COLORS.bodyText,
     marginBottom: '1mm',
   },
 }
@@ -253,7 +279,7 @@ const RagStatus = ({ data }) => (
     ].map(([label, status]) => (
       <div key={label} style={styles.ragItem}>
         <span style={styles.ragLabel}>{label}</span>
-        <div style={styles.ragIndicator(RAG_COLORS[status] || COLORS.green)} />
+        <span style={styles.ragIndicator(RAG_COLORS[status] || COLORS.green)} />
       </div>
     ))}
   </div>
@@ -309,7 +335,7 @@ const ExitCasesTable = ({ data }) => (
           <td style={{ ...styles.tdValue, fontSize: '6pt' }}>{sc.evExit || '—'}</td>
           <td style={{ ...styles.tdValue, fontSize: '6pt' }}>{sc.moic || '—'}</td>
           <td style={{ ...styles.tdValue, fontSize: '6pt' }}>{sc.irr || '—'}</td>
-          <td style={{ ...styles.td, fontSize: '5.5pt', whiteSpace: 'normal', wordWrap: 'break-word', maxWidth: '70px', lineHeight: '1.2' }}>{sc.keyFactors || '—'}</td>
+          <td style={{ ...styles.td, fontSize: '6pt', whiteSpace: 'normal', wordBreak: 'break-word', maxWidth: '120px', lineHeight: '1.2' }}>{sc.keyFactors || '—'}</td>
         </tr>
       ))}
       <tr style={{ borderTop: `1px solid ${COLORS.navy}` }}>
@@ -427,7 +453,7 @@ const NavOnePagerTemplate = forwardRef(({ navData }, ref) => {
 
         {/* RIGHT COLUMN */}
         <div style={styles.rightCol}>
-          {/* Company Update — flex:1 so it takes remaining space, with overflow hidden */}
+          {/* Company Update — flows naturally, no fixed height */}
           <div style={styles.commentaryWrapper}>
             <div style={styles.sectionTitle}>Company Update</div>
             <div style={styles.commentary}>

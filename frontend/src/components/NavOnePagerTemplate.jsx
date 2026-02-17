@@ -180,8 +180,7 @@ const styles = {
     overflow: 'hidden',
   },
   commentaryWrapper: {
-    flex: '1',
-    overflow: 'hidden',
+    marginBottom: '2mm',
   },
   description: {
     fontSize: '6.5pt',

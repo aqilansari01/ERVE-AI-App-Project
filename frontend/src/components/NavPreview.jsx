@@ -1,10 +1,32 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import NavOnePagerTemplate from './NavOnePagerTemplate'
 import { generatePDF } from '../services/pdfGenerator'
 
+// Native size of A4 landscape in px (297mm ≈ 1122px)
+const TEMPLATE_WIDTH_PX = 1122
+const TEMPLATE_HEIGHT_PX = 793 // 210mm ≈ 793px
+
 export default function NavPreview({ navData, onBack, onPdfGenerated }) {
   const pdfRef = useRef(null)
+  const containerRef = useRef(null)
   const [generating, setGenerating] = useState(false)
+  const [scale, setScale] = useState(0.5)
+
+  const updateScale = useCallback(() => {
+    if (!containerRef.current) return
+    const containerWidth = containerRef.current.clientWidth
+    const newScale = containerWidth / TEMPLATE_WIDTH_PX
+    setScale(newScale)
+  }, [])
+
+  useEffect(() => {
+    updateScale()
+    const observer = new ResizeObserver(updateScale)
+    if (containerRef.current) {
+      observer.observe(containerRef.current)
+    }
+    return () => observer.disconnect()
+  }, [updateScale])
 
   const handleGeneratePDF = async () => {
     if (!pdfRef.current) return
@@ -19,6 +41,8 @@ export default function NavPreview({ navData, onBack, onPdfGenerated }) {
       setGenerating(false)
     }
   }
+
+  const scaledHeight = TEMPLATE_HEIGHT_PX * scale
 
   return (
     <div className="space-y-6">
@@ -44,25 +68,23 @@ export default function NavPreview({ navData, onBack, onPdfGenerated }) {
       </div>
 
       {/* Scaled preview container */}
-      <div className="flex justify-center">
+      <div
+        ref={containerRef}
+        className="border border-gray-200 rounded-md shadow-sm overflow-hidden bg-white w-full"
+        style={{
+          height: `${scaledHeight}px`,
+          position: 'relative',
+        }}
+      >
         <div
-          className="border border-gray-200 rounded-md shadow-sm overflow-hidden bg-white"
           style={{
-            width: '890px',
-            height: '630px',
-            position: 'relative',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+            width: `${TEMPLATE_WIDTH_PX}px`,
+            height: `${TEMPLATE_HEIGHT_PX}px`,
           }}
         >
-          <div
-            style={{
-              transform: 'scale(0.5)',
-              transformOrigin: 'top left',
-              width: '297mm',
-              height: '210mm',
-            }}
-          >
-            <NavOnePagerTemplate navData={navData} />
-          </div>
+          <NavOnePagerTemplate navData={navData} />
         </div>
       </div>
 

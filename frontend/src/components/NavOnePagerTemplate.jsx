@@ -346,10 +346,15 @@ const ExitCasesTable = ({ data }) => (
   </table>
 )
 
+const SUMMARY_LABELS = ['methodology', 'valuation', 'implied multiple']
+
 const ValuationWaterfallTable = ({ data }) => {
   const wf = data.valuationWaterfall
   const labels = wf.quarterLabels
   const rows = wf.rows || []
+
+  // Find the index of the first summary row (Methodology/Valuation/Implied multiple)
+  const firstSummaryIdx = rows.findIndex((r) => SUMMARY_LABELS.includes(r.label.toLowerCase()))
 
   return (
     <table style={styles.table}>
@@ -362,32 +367,18 @@ const ValuationWaterfallTable = ({ data }) => {
         </tr>
       </thead>
       <tbody>
-        {rows.map((row, ri) => (
-          <tr key={ri}>
-            <td style={styles.tdLabel}>{row.label}</td>
-            {row.values.map((v, vi) => (
-              <td key={vi} style={{ ...styles.tdValue, fontSize: '6pt' }}>{v || '—'}</td>
-            ))}
-          </tr>
-        ))}
-        <tr style={{ borderTop: `1.5px solid ${COLORS.navy}` }}>
-          <td style={{ ...styles.tdLabel, fontWeight: '700' }}>Methodology</td>
-          {(wf.methodology || ['', '', '']).map((v, i) => (
-            <td key={i} style={{ ...styles.tdValue, fontSize: '6pt', whiteSpace: 'normal', wordWrap: 'break-word' }}>{v || '—'}</td>
-          ))}
-        </tr>
-        <tr>
-          <td style={{ ...styles.tdLabel, fontWeight: '700' }}>Valuation</td>
-          {(wf.valuation || ['', '', '']).map((v, i) => (
-            <td key={i} style={{ ...styles.tdValue, fontSize: '6pt' }}>{v || '—'}</td>
-          ))}
-        </tr>
-        <tr>
-          <td style={{ ...styles.tdLabel, fontWeight: '700' }}>Implied Multiple</td>
-          {(wf.impliedMultiple || ['', '', '']).map((v, i) => (
-            <td key={i} style={{ ...styles.tdValue, fontSize: '6pt' }}>{v || '—'}</td>
-          ))}
-        </tr>
+        {rows.map((row, ri) => {
+          const isSummary = SUMMARY_LABELS.includes(row.label.toLowerCase())
+          const isFirstSummary = ri === firstSummaryIdx
+          return (
+            <tr key={ri} style={isFirstSummary ? { borderTop: `1.5px solid ${COLORS.navy}` } : undefined}>
+              <td style={{ ...styles.tdLabel, ...(isSummary ? { fontWeight: '700' } : {}) }}>{row.label}</td>
+              {row.values.map((v, vi) => (
+                <td key={vi} style={{ ...styles.tdValue, fontSize: '6pt' }}>{v || '—'}</td>
+              ))}
+            </tr>
+          )
+        })}
       </tbody>
     </table>
   )

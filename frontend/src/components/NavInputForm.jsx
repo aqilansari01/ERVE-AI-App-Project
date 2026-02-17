@@ -148,21 +148,7 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
       return { ...row, values: newValues }
     })
 
-    // Roll methodology, valuation, impliedMultiple per-quarter arrays
     const newWaterfall = { ...navData.valuationWaterfall, quarterLabels: newWfLabels, rows: newWfRows, historicalData: updatedWfHistorical }
-    ;['methodology', 'valuation', 'impliedMultiple'].forEach((field) => {
-      const values = navData.valuationWaterfall[field] || ['', '', '']
-      const fieldKey = `_${field}`
-      if (!updatedWfHistorical[fieldKey]) updatedWfHistorical[fieldKey] = {}
-      updatedWfHistorical[fieldKey] = { ...updatedWfHistorical[fieldKey] }
-      oldWfLabels.forEach((label, i) => {
-        if (values[i]) updatedWfHistorical[fieldKey][label] = values[i]
-      })
-      const fieldHistory = updatedWfHistorical[fieldKey] || {}
-      const positionalMap = {}
-      oldWfLabels.forEach((label, i) => { positionalMap[label] = values[i] || '' })
-      newWaterfall[field] = newWfLabels.map((label) => fieldHistory[label] || positionalMap[label] || '')
-    })
 
     onNavDataChange({
       ...navData,
@@ -222,6 +208,14 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
 
   const removeWaterfallRow = (rowIndex) => {
     const newRows = navData.valuationWaterfall.rows.filter((_, ri) => ri !== rowIndex)
+    updateNested('valuationWaterfall.rows', newRows)
+  }
+
+  const moveWaterfallRow = (fromIndex, toIndex) => {
+    if (toIndex < 0 || toIndex >= navData.valuationWaterfall.rows.length) return
+    const newRows = [...navData.valuationWaterfall.rows]
+    const [moved] = newRows.splice(fromIndex, 1)
+    newRows.splice(toIndex, 0, moved)
     updateNested('valuationWaterfall.rows', newRows)
   }
 
@@ -616,7 +610,7 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-gray-50">
-                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-3 py-2.5" style={{ width: '20px' }}></th>
+                <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-1 py-2.5" style={{ width: '52px' }}></th>
                 <th className="text-left text-gray-500 font-medium text-xs uppercase tracking-wider px-3 py-2.5"></th>
                 {navData.valuationWaterfall.quarterLabels.map((l, i) => (
                   <th key={i} className="text-right text-gray-500 font-medium text-xs uppercase tracking-wider px-2 py-2.5">{l}</th>
@@ -624,58 +618,56 @@ export default function NavInputForm({ navData, onNavDataChange, files, onFilesC
               </tr>
             </thead>
             <tbody>
-              {(navData.valuationWaterfall.rows || []).map((row, ri) => (
-                <tr key={ri} className="border-t border-gray-100 group">
-                  <td className="px-1 py-1 text-center" style={{ width: '20px' }}>
-                    <button
-                      type="button"
-                      onClick={() => removeWaterfallRow(ri)}
-                      className="text-gray-300 hover:text-red-500 text-xs leading-none opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Remove row"
-                    >
-                      &times;
-                    </button>
-                  </td>
-                  <td className="px-1.5 py-1">
-                    <input
-                      type="text"
-                      value={row.label}
-                      onChange={(e) => updateWaterfallLabel(ri, e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-xs text-gray-900 font-medium focus:border-[#E84393] focus:outline-none transition-colors"
-                    />
-                  </td>
-                  {row.values.map((v, ci) => (
-                    <td key={ci} className="px-1.5 py-1">
+              {(navData.valuationWaterfall.rows || []).map((row, ri) => {
+                const rowCount = navData.valuationWaterfall.rows.length
+                return (
+                  <tr key={ri} className="border-t border-gray-100 group">
+                    <td className="px-1 py-1 text-center" style={{ width: '52px' }}>
+                      <span className="inline-flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={() => moveWaterfallRow(ri, ri - 1)}
+                          disabled={ri === 0}
+                          className="text-gray-300 hover:text-gray-600 text-[10px] leading-none disabled:opacity-30 disabled:cursor-default"
+                          title="Move up"
+                        >&#9650;</button>
+                        <button
+                          type="button"
+                          onClick={() => moveWaterfallRow(ri, ri + 1)}
+                          disabled={ri === rowCount - 1}
+                          className="text-gray-300 hover:text-gray-600 text-[10px] leading-none disabled:opacity-30 disabled:cursor-default"
+                          title="Move down"
+                        >&#9660;</button>
+                        <button
+                          type="button"
+                          onClick={() => addWaterfallRow(ri)}
+                          className="text-gray-300 hover:text-[#E84393] text-[11px] leading-none ml-0.5"
+                          title="Insert row below"
+                        >+</button>
+                        <button
+                          type="button"
+                          onClick={() => removeWaterfallRow(ri)}
+                          className="text-gray-300 hover:text-red-500 text-xs leading-none ml-0.5"
+                          title="Remove row"
+                        >&times;</button>
+                      </span>
+                    </td>
+                    <td className="px-1.5 py-1">
                       <input
                         type="text"
-                        value={v}
-                        onChange={(e) => updateWaterfallCell(ri, ci, e.target.value)}
-                        className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-900 text-right focus:border-[#E84393] focus:outline-none transition-colors"
-                        placeholder="--"
+                        value={row.label}
+                        onChange={(e) => updateWaterfallLabel(ri, e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-xs text-gray-900 font-medium focus:border-[#E84393] focus:outline-none transition-colors"
                       />
                     </td>
-                  ))}
-                </tr>
-              ))}
-              {/* Methodology / Valuation / Implied Multiple — per-quarter */}
-              {['Methodology', 'Valuation', 'Implied Multiple'].map((label, mi) => {
-                const fieldKey = ['methodology', 'valuation', 'impliedMultiple'][mi]
-                return (
-                  <tr key={fieldKey} className="border-t border-gray-200">
-                    <td className="px-1 py-1" style={{ width: '20px' }}></td>
-                    <td className="text-gray-900 font-semibold px-3 py-2 whitespace-nowrap text-xs">{label}</td>
-                    {(navData.valuationWaterfall[fieldKey] || ['', '', '']).map((v, ci) => (
+                    {row.values.map((v, ci) => (
                       <td key={ci} className="px-1.5 py-1">
                         <input
                           type="text"
                           value={v}
-                          onChange={(e) => {
-                            const newArr = [...(navData.valuationWaterfall[fieldKey] || ['', '', ''])]
-                            newArr[ci] = e.target.value
-                            updateNested(`valuationWaterfall.${fieldKey}`, newArr)
-                          }}
+                          onChange={(e) => updateWaterfallCell(ri, ci, e.target.value)}
                           className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-900 text-right focus:border-[#E84393] focus:outline-none transition-colors"
-                          placeholder="—"
+                          placeholder="--"
                         />
                       </td>
                     ))}

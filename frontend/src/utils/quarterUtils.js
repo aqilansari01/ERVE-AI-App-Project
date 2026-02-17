@@ -187,9 +187,8 @@ export const rollFinancialsForward = (financials, quartersToRoll, newColumns) =>
  * Uses label-based remapping so data stays aligned with the correct column headers.
  * Preserves and consults historicalData so values that scroll off-screen aren't lost.
  *
- * Supports the flexible rows-based structure where waterfall.rows is an array
- * of { label, values } objects, and methodology/valuation/impliedMultiple are
- * per-quarter arrays.
+ * All data lives in waterfall.rows (array of { label, values } objects),
+ * including Methodology, Valuation, and Implied Multiple.
  */
 export const rollWaterfallForward = (waterfall, quartersToRoll, newLabels) => {
   if (quartersToRoll <= 0) {
@@ -223,27 +222,10 @@ export const rollWaterfallForward = (waterfall, quartersToRoll, newLabels) => {
     return { ...row, values: newValues }
   })
 
-  const rolled = { ...waterfall, quarterLabels: newLabels, rows: rolledRows, historicalData: updatedHistorical }
-
-  // Roll methodology, valuation, impliedMultiple arrays the same way
-  ;['methodology', 'valuation', 'impliedMultiple'].forEach((field) => {
-    const values = waterfall[field] || ['', '', '']
-    const fieldKey = `_${field}`
-    if (!updatedHistorical[fieldKey]) updatedHistorical[fieldKey] = {}
-    updatedHistorical[fieldKey] = { ...updatedHistorical[fieldKey] }
-    oldLabels.forEach((label, i) => {
-      if (values[i]) {
-        updatedHistorical[fieldKey][label] = values[i]
-      }
-    })
-    const fieldHistory = updatedHistorical[fieldKey] || {}
-    const positionalMap = {}
-    oldLabels.forEach((label, i) => {
-      positionalMap[label] = values[i] || ''
-    })
-    rolled[field] = newLabels.map((label) => fieldHistory[label] || positionalMap[label] || '')
-  })
-
-  rolled.historicalData = updatedHistorical
-  return rolled
+  return {
+    ...waterfall,
+    quarterLabels: newLabels,
+    rows: rolledRows,
+    historicalData: updatedHistorical,
+  }
 }

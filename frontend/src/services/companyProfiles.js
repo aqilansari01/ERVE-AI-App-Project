@@ -53,14 +53,58 @@ export const extractProfileFromNavData = (navData) => {
 }
 
 /**
- * Migrate old fixed-key waterfall format to the new rows-based format.
- * Old format had keys like comparableMultiple, arr, etc.
- * New format uses a rows array of { label, values } objects.
+ * Migrate old waterfall formats to the current rows-only format.
+ *
+ * Handles two legacy formats:
+ * 1. Fixed-key format: keys like comparableMultiple, arr, etc. + standalone methodology/valuation/impliedMultiple strings
+ * 2. Intermediate format: rows array + separate methodology/valuation/impliedMultiple per-quarter arrays
+ *
+ * Current format: everything lives in the rows array (including Methodology, Valuation, Implied multiple).
  */
 const migrateWaterfallIfNeeded = (wf, standaloneMethodology, standaloneValuation, standaloneImpliedMultiple) => {
-  if (wf && wf.rows) return wf // Already new format
   if (!wf) return null
 
+  // Already in rows format — check if methodology/valuation/impliedMultiple arrays
+  // still exist as separate fields (intermediate format) and fold them into rows
+  if (wf.rows) {
+    const hasMethodologyRow = wf.rows.some((r) => /^methodology$/i.test(r.label))
+    if (hasMethodologyRow) {
+      // Already fully migrated — strip any leftover separate arrays
+      const { methodology, valuation, impliedMultiple, ...clean } = wf
+      return clean
+    }
+
+    // Intermediate format: rows exist but methodology/valuation/impliedMultiple are separate arrays
+    const extraRows = []
+    if (wf.methodology || standaloneMethodology) {
+      extraRows.push({ label: 'Methodology', values: Array.isArray(wf.methodology) ? wf.methodology : [standaloneMethodology || '', '', ''] })
+    }
+    if (wf.valuation || standaloneValuation) {
+      extraRows.push({ label: 'Valuation', values: Array.isArray(wf.valuation) ? wf.valuation : [standaloneValuation || '', '', ''] })
+    }
+    if (wf.impliedMultiple || standaloneImpliedMultiple) {
+      extraRows.push({ label: 'Implied multiple', values: Array.isArray(wf.impliedMultiple) ? wf.impliedMultiple : [standaloneImpliedMultiple || '', '', ''] })
+    }
+
+    // Migrate historicalData for the separate fields
+    const historical = { ...(wf.historicalData || {}) }
+    ;['_methodology', '_valuation', '_impliedMultiple'].forEach((key) => {
+      if (historical[key]) {
+        const label = key === '_methodology' ? 'Methodology' : key === '_valuation' ? 'Valuation' : 'Implied multiple'
+        historical[label] = historical[key]
+        delete historical[key]
+      }
+    })
+
+    const { methodology, valuation, impliedMultiple, ...clean } = wf
+    return {
+      ...clean,
+      rows: [...wf.rows, ...extraRows],
+      historicalData: historical,
+    }
+  }
+
+  // Oldest format: fixed keys like comparableMultiple, arr, etc.
   const oldKeys = [
     ['comparableMultiple', 'Comparable EV/Rev Multiple'],
     ['arr', 'ARR'],
@@ -80,6 +124,11 @@ const migrateWaterfallIfNeeded = (wf, standaloneMethodology, standaloneValuation
       values: wf[key] || ['', '', ''],
     }))
 
+  // Append Methodology/Valuation/Implied multiple as rows
+  rows.push({ label: 'Methodology', values: [standaloneMethodology || '', '', ''] })
+  rows.push({ label: 'Valuation', values: [standaloneValuation || '', '', ''] })
+  rows.push({ label: 'Implied multiple', values: [standaloneImpliedMultiple || '', '', ''] })
+
   // Migrate historicalData keys from old metric keys to new row labels
   const oldHistorical = wf.historicalData || {}
   const migratedHistorical = {}
@@ -92,9 +141,6 @@ const migrateWaterfallIfNeeded = (wf, standaloneMethodology, standaloneValuation
   return {
     quarterLabels: wf.quarterLabels || ['', '', ''],
     rows,
-    methodology: [standaloneMethodology || '', '', ''],
-    valuation: [standaloneValuation || '', '', ''],
-    impliedMultiple: [standaloneImpliedMultiple || '', '', ''],
     historicalData: migratedHistorical,
   }
 }

@@ -133,10 +133,10 @@ export const createEmptyNavData = (navQuarter = DEFAULT_NAV_QUARTER) => ({
       { label: 'Equity value', values: ['', '', ''] },
       { label: 'ERVE ownership', values: ['', '', ''] },
       { label: 'Comps-based value of ERVE equity', values: ['', '', ''] },
+      { label: 'Methodology', values: ['', '', ''] },
+      { label: 'Valuation', values: ['', '', ''] },
+      { label: 'Implied multiple', values: ['', '', ''] },
     ],
-    methodology: ['', '', ''],
-    valuation: ['', '', ''],
-    impliedMultiple: ['', '', ''],
     historicalData: {},
   },
 
